@@ -44,52 +44,52 @@ const (
 )
 
 type Block struct {
-	ID           int
-	ScheduleID   int
-	SchoolID     int
-	GroupID      int
-	CourseID     int
-	SeriesID     int
-	TeacherID    int
-	DepartmentID int
-	RoomID       int
-	RoomShared   bool
-	PavilionID   int
-	Day          int
-	StartSlot    int
-	EndSlot      int
-	Enrollment   int
-	RoomCapacity int
+	ID           int  `json:"id"`
+	ScheduleID   int  `json:"schedule_id"`
+	SchoolID     int  `json:"school_id"`
+	GroupID      int  `json:"group_id"`
+	CourseID     int  `json:"course_id"`
+	SeriesID     int  `json:"series_id"`
+	TeacherID    int  `json:"teacher_id"`
+	DepartmentID int  `json:"department_id"`
+	RoomID       int  `json:"room_id"`
+	RoomShared   bool `json:"room_shared"`
+	PavilionID   int  `json:"pavilion_id"`
+	Day          int  `json:"day"`
+	StartSlot    int  `json:"start_slot"`
+	EndSlot      int  `json:"end_slot"`
+	Enrollment   int  `json:"enrollment"`
+	RoomCapacity int  `json:"room_capacity"`
 }
 
 type DepartmentSession struct {
-	DepartmentID int
-	Day          int
-	StartSlot    int
-	EndSlot      int
+	DepartmentID int `json:"department_id"`
+	Day          int `json:"day"`
+	StartSlot    int `json:"start_slot"`
+	EndSlot      int `json:"end_slot"`
 }
 
 type Distance struct {
-	FromPavilionID int
-	ToPavilionID   int
-	Minutes        int
+	FromPavilionID int `json:"from_pavilion_id"`
+	ToPavilionID   int `json:"to_pavilion_id"`
+	Minutes        int `json:"minutes"`
 }
 
 type PlacementInput struct {
-	Proposed           Block
-	Existing           []Block
-	DepartmentSessions []DepartmentSession
-	Distances          []Distance
-	State              ScheduleState
+	Proposed           Block               `json:"proposed"`
+	Existing           []Block             `json:"existing"`
+	DepartmentSessions []DepartmentSession `json:"department_sessions"`
+	Distances          []Distance          `json:"distances"`
+	State              ScheduleState       `json:"state"`
 }
 
 type AuditChangeInput struct {
-	State         ScheduleState
-	Justification string
+	State         ScheduleState `json:"state"`
+	Justification string        `json:"justification"`
 }
 
 type TeachingLoadInput struct {
-	TeacherID   int
-	WeeklyHours int
-	Confirmed   bool
+	TeacherID   int  `json:"teacher_id"`
+	WeeklyHours int  `json:"weekly_hours"`
+	Confirmed   bool `json:"confirmed"`
 }

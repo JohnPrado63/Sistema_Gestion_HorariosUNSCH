@@ -1,4 +1,4 @@
-﻿package validationui
+package validationui
 
 import (
 	"encoding/json"
@@ -63,7 +63,7 @@ func buildScenarios() []Scenario {
 			"La clase cae dentro de la franja semanal reservada del departamento 7.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed: withDepartment(demoBlock(1, 10, 1, 1, 1, 100, 1, 3, 4), 7),
+				Proposed:           withDepartment(demoBlock(1, 10, 1, 1, 1, 100, 1, 3, 4), 7),
 				DepartmentSessions: []validation.DepartmentSession{{DepartmentID: 7, Day: 1, StartSlot: 4, EndSlot: 5}},
 			},
 		),
@@ -74,8 +74,8 @@ func buildScenarios() []Scenario {
 			"El docente termina en un pabellon y empieza inmediatamente en otro.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed: withPavilion(demoBlock(1, 10, 1, 1, 1, 100, 1, 4, 5), 2),
-				Existing: []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 2, 100, 1, 2, 3), 1)},
+				Proposed:  withPavilion(demoBlock(1, 10, 1, 1, 1, 100, 1, 4, 5), 2),
+				Existing:  []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 2, 100, 1, 2, 3), 1)},
 				Distances: []validation.Distance{{FromPavilionID: 1, ToPavilionID: 2, Minutes: 10}},
 			},
 		),
@@ -86,8 +86,8 @@ func buildScenarios() []Scenario {
 			"Hay una hora libre, pero la matriz estima 90 minutos de traslado.",
 			validation.SeverityWarning,
 			validation.PlacementInput{
-				Proposed: withPavilion(demoBlock(1, 10, 1, 1, 1, 100, 1, 5, 6), 2),
-				Existing: []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 2, 100, 1, 2, 3), 1)},
+				Proposed:  withPavilion(demoBlock(1, 10, 1, 1, 1, 100, 1, 5, 6), 2),
+				Existing:  []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 2, 100, 1, 2, 3), 1)},
 				Distances: []validation.Distance{{FromPavilionID: 1, ToPavilionID: 2, Minutes: 90}},
 			},
 		),
@@ -126,7 +126,7 @@ func buildScenarios() []Scenario {
 			validation.PlacementInput{
 				Proposed: demoBlock(1, 10, 1, 1, 1, 100, 1, 6, 7),
 				Existing: []validation.Block{demoBlock(2, 20, 2, 2, 2, 200, 1, 3, 4)},
-				State: validation.StateDraft,
+				State:    validation.StateDraft,
 			},
 		),
 	}
