@@ -9,7 +9,10 @@
 <body>
   <div id="app" class="container">
     <header class="header">
-      <div class="brand">UNSCH — Sistema de Gestión de Horarios (Frontend)</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="brand">UNSCH — Sistema de Gestión de Horarios (Frontend)</div>
+        <div id="appStatus" class="small" aria-live="polite"></div>
+      </div>
       <nav class="nav">
         <button data-route="dashboard" class="nav-btn">Dashboard</button>
         <button data-route="catalogs" class="nav-btn">Catálogos</button>
