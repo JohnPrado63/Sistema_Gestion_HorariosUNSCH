@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UNSCH - Panel de Gestión (Frontend)</title>
+  <link rel="stylesheet" href="/app/style.css" />
+</head>
+<body>
+  <div id="app" class="container">
+    <header class="header">
+      <div class="brand">UNSCH — Sistema de Gestión de Horarios (Frontend)</div>
+      <nav class="nav">
+        <button data-route="dashboard" class="nav-btn">Dashboard</button>
+        <button data-route="catalogs" class="nav-btn">Catálogos</button>
+        <button data-route="validations" class="nav-btn">Validaciones</button>
+        <button data-route="schedules" class="nav-btn">Horarios</button>
+        <button data-route="siige" class="nav-btn">Simulador SIIGE</button>
+      </nav>
+    </header>
+
+    <main id="main" class="main"></main>
+
+    <footer class="footer">API: <a href="/api/v1/facultades">/api/v1</a> — Frontend de demostración</footer>
+  </div>
+
+  <script src="/app/app.js"></script>
+</body>
+</html>
