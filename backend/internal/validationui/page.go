@@ -1,4 +1,4 @@
-﻿package validationui
+package validationui
 
 const pageHTML = `<!doctype html>
 <html lang="es">
@@ -81,12 +81,12 @@ const pageHTML = `<!doctype html>
         if (!item.findings || item.findings.length === 0) counts.OK++;
         for (const finding of item.findings || []) counts[finding.severity]++;
       }
-      summary.innerHTML = `
+      summary.innerHTML = ` + "`" + `
         <span class="pill">Bloqueos: ${counts.BLOCKER}</span>
         <span class="pill">Advertencias: ${counts.WARNING}</span>
         <span class="pill">Informativos: ${counts.INFO}</span>
         <span class="pill">Validos: ${counts.OK}</span>
-      `;
+      ` + "`" + `;
     }
 
     function render(items) {
@@ -94,21 +94,21 @@ const pageHTML = `<!doctype html>
       grid.innerHTML = items.map(item => {
         const findings = item.findings && item.findings.length ? item.findings : [{ rule: item.rule, severity: 'OK', message: 'La asignacion no genera observaciones.' }];
         const highest = findings[0].severity;
-        return `
+        return ` + "`" + `
           <article class="card">
             <header>
               <div class="title">${item.title}</div>
               <span class="rule">${item.rule}</span>
             </header>
             <p class="desc">${item.description}</p>
-            ${findings.map(finding => `
+            ${findings.map(finding => ` + "`" + `
               <div class="finding ${finding.severity}">
                 <strong><span class="badge ${finding.severity}">${severityLabel(finding.severity)}</span></strong>
                 <span><code>${finding.rule}</code> ${finding.message}</span>
               </div>
-            `).join('')}
+            ` + "`" + `).join('')}
           </article>
-        `;
+        ` + "`" + `;
       }).join('');
     }
 
@@ -120,7 +120,7 @@ const pageHTML = `<!doctype html>
         if (!response.ok) throw new Error('HTTP ' + response.status);
         render(await response.json());
       } catch (error) {
-        grid.innerHTML = `<article class="card"><div class="finding BLOCKER"><strong>Error</strong>${error.message}</div></article>`;
+        grid.innerHTML = ` + "`" + `<article class="card"><div class="finding BLOCKER"><strong>Error</strong>${error.message}</div></article>` + "`" + `;
       } finally {
         run.disabled = false;
         run.textContent = 'Ejecutar validaciones';
