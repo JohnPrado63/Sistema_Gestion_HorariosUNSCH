@@ -6,6 +6,28 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type RepositoryInterface interface {
+	ListFacultades(ctx context.Context) ([]Facultad, error)
+	ListDepartamentos(ctx context.Context) ([]Departamento, error)
+	ListEscuelas(ctx context.Context) ([]Escuela, error)
+	ListAulas(ctx context.Context) ([]Aula, error)
+	ListUsuarios(ctx context.Context) ([]Usuario, error)
+	ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error)
+	ListSeries(ctx context.Context) ([]Serie, error)
+	ListCursos(ctx context.Context) ([]Curso, error)
+	ListDocentes(ctx context.Context) ([]Docente, error)
+	ListPeriodos(ctx context.Context) ([]PeriodoAcademico, error)
+	ListSesionesDepartamento(ctx context.Context) ([]SesionDepartamento, error)
+	ListLocales(ctx context.Context) ([]Local, error)
+	ListPabellones(ctx context.Context) ([]Pabellon, error)
+	ListDistancias(ctx context.Context) ([]Distancia, error)
+	ListCargasAcademicas(ctx context.Context) ([]CargaAcademica, error)
+	ListGrupos(ctx context.Context) ([]Grupo, error)
+	ListHorarios(ctx context.Context) ([]Horario, error)
+	ListBloquesHorario(ctx context.Context) ([]BloqueHorario, error)
+	ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAuditoria, error)
+}
+
 type Repository struct {
 	db *pgxpool.Pool
 }

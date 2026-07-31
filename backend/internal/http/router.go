@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -53,19 +54,29 @@ func NewRouter(db *pgxpool.Pool) http.Handler {
 	mux.HandleFunc("/api/v1/validaciones/carga", scheduleHandler.ValidateTeachingLoad)
 
 	// serve the frontend static app under /app/
-	// Allow override via FRONTEND_DIR env var; fall back to repo-root ../frontend or bundled ./frontend
+	// Priority: FRONTEND_DIR env var > dist folder > source folder
 	frontendDir := os.Getenv("FRONTEND_DIR")
 	if frontendDir == "" {
-		// try common relative locations depending on where the binary is started
-		if _, err := os.Stat("./frontend"); err == nil {
+		candidates := []struct {
+			path     string
+			frontend string
+		}{
+			{"./frontend/dist/index.html", "./frontend/dist"},
+			{"../frontend/dist/index.html", "../frontend/dist"},
+			{"backend/frontend/dist/index.html", "backend/frontend/dist"},
+			{"./frontend/index.html", "./frontend"},
+			{"../frontend/index.html", "../frontend"},
+		}
+		for _, c := range candidates {
+			if _, err := os.Stat(c.path); err == nil {
+				frontendDir = c.frontend
+				log.Printf("frontend: using %s (found %s)", frontendDir, c.path)
+				break
+			}
+		}
+		if frontendDir == "" {
 			frontendDir = "./frontend"
-		} else if _, err := os.Stat("../frontend"); err == nil {
-			frontendDir = "../frontend"
-		} else if _, err := os.Stat("backend/frontend"); err == nil {
-			frontendDir = "backend/frontend"
-		} else {
-			// last resort: use ./frontend (will 404 if missing)
-			frontendDir = "./frontend"
+			log.Printf("frontend: using fallback %s", frontendDir)
 		}
 	}
 	fileServer := http.FileServer(http.Dir(frontendDir))

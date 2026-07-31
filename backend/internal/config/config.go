@@ -22,7 +22,7 @@ func Load() Config {
 		DBPort: env("DB_PORT", "5433"),
 		DBName: env("DB_NAME", "unsch_horarios"),
 		DBUser: env("DB_USER", "postgres"),
-		DBPass: env("DB_PASSWORD", "sulcaprado"),
+		DBPass: os.Getenv("DB_PASSWORD"),
 		DBSSL:  env("DB_SSLMODE", "disable"),
 	}
 }

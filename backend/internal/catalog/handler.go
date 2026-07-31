@@ -8,7 +8,7 @@ import (
 )
 
 type Handler struct {
-	repo Repository
+	repo RepositoryInterface
 }
 
 func NewHandler(db *pgxpool.Pool) Handler {
