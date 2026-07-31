@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-unsch_horarios}
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-sulcaprado}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "${DB_PORT:-5433}:5432"
     volumes:
@@ -24,7 +24,7 @@ services:
     image: redis:7-alpine
     container_name: unsch_horarios_redis
     restart: always
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis_secret}
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
