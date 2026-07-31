@@ -56,25 +56,116 @@ async function renderCatalogs(container){
 async function renderValidations(container){
   setStatus('mostrando validaciones');
   const card = document.createElement('div'); card.className='card';
-  card.innerHTML = `<h3>Validaciones</h3><p class="small">Enviar escenarios de prueba al backend.</p><div class="controls"><button type="button" class="btn" id="runSimple">Escenario simple</button><button type="button" class="btn secondary" id="runComplex">Escenario complejo</button></div><pre id="valResult" class="preview"></pre>`;
+  card.innerHTML = `<h3>Validaciones</h3><p class="small">Enviar escenarios de prueba al backend.</p><div class="controls"><button type="button" class="btn" id="runSimple">Escenario simple</button><button type="button" class="btn secondary" id="runComplex">Escenario complejo</button></div><pre id="valResult" class="preview"></pre><div class="controls" style="margin-top:16px;"><button type="button" class="btn secondary" id="refreshScenarios">Actualizar escenarios</button></div><pre id="scenarioResult" class="preview">Cargando escenarios del motor...</pre>`;
   container.appendChild(card);
+  el('#refreshScenarios').addEventListener('click', loadValidationScenarios);
+  loadValidationScenarios();
   el('#runSimple').addEventListener('click', async ()=>{
     setStatus('ejecutando validación simple');
     try{
-      const payload = {horarios:[],grupos:[],docentes:[],periodo:'2026-I'};
+      const payload = {
+        proposed: {
+          id: 101,
+          teacher_id: 10,
+          school_id: 1,
+          group_id: 1,
+          room_id: 5,
+          series_id: 1,
+          day: 1,
+          start_slot: 3,
+          end_slot: 4,
+          enrollment: 42,
+          room_capacity: 40
+        },
+        existing: [
+          {
+            id: 100,
+            teacher_id: 10,
+            school_id: 1,
+            group_id: 2,
+            room_id: 6,
+            series_id: 2,
+            day: 1,
+            start_slot: 4,
+            end_slot: 5,
+            enrollment: 20,
+            room_capacity: 40
+          }
+        ],
+        state: 'BORRADOR'
+      };
       const res = await fetch('/api/v1/validaciones/placement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!res.ok){
+        const errorBody = await res.json().catch(()=>({error:res.statusText}));
+        throw new Error(errorBody.error || 'HTTP '+res.status);
+      }
       const json = await res.json(); el('#valResult').textContent = JSON.stringify(json,null,2); setStatus('validación completa');
     }catch(e){el('#valResult').textContent = 'Error: '+e.message; setStatus('error en validación')}
   })
   el('#runComplex').addEventListener('click', async ()=>{
     setStatus('ejecutando validación compleja');
     try{
-      // sample complex scenario (local demo)
-      const payload = {periodo:'2026-I',horarios:[{curso:'MAT101',aula:'A101',dia:1,inicio:'08:00',fin:'10:00',docente:'d1'},{curso:'FIS101',aula:'A102',dia:1,inicio:'08:30',fin:'10:30',docente:'d1'}],grupos:[],docentes:[{id:'d1',nombre:'Juan'}]};
+      const payload = {
+        proposed: {
+          id: 201,
+          teacher_id: 10,
+          school_id: 1,
+          group_id: 1,
+          course_id: 101,
+          series_id: 1,
+          room_id: 5,
+          pavilion_id: 2,
+          day: 1,
+          start_slot: 3,
+          end_slot: 4,
+          enrollment: 55,
+          room_capacity: 40
+        },
+        existing: [
+          {
+            id: 200,
+            teacher_id: 10,
+            school_id: 1,
+            group_id: 2,
+            course_id: 102,
+            series_id: 2,
+            room_id: 6,
+            pavilion_id: 1,
+            day: 1,
+            start_slot: 4,
+            end_slot: 5,
+            enrollment: 20,
+            room_capacity: 40
+          }
+        ],
+        distances: [
+          {from_pavilion_id: 1, to_pavilion_id: 2, minutes: 90}
+        ],
+        department_sessions: [
+          {department_id: 7, day: 1, start_slot: 4, end_slot: 5}
+        ],
+        state: 'EN_REAJUSTE'
+      };
       const res = await fetch('/api/v1/validaciones/placement',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      if(!res.ok){
+        const errorBody = await res.json().catch(()=>({error:res.statusText}));
+        throw new Error(errorBody.error || 'HTTP '+res.status);
+      }
       const json = await res.json(); el('#valResult').textContent = JSON.stringify(json,null,2); setStatus('validación completa');
     }catch(e){el('#valResult').textContent = 'Error: '+e.message; setStatus('error en validación')}
   })
+}
+
+async function loadValidationScenarios(){
+  const result = el('#scenarioResult');
+  if(!result) return;
+  result.textContent = 'Cargando escenarios del motor...';
+  try{
+    const scenarios = await apiGET('/validaciones/escenarios');
+    result.textContent = JSON.stringify(scenarios, null, 2);
+  }catch(e){
+    result.textContent = 'Error al cargar escenarios: '+e.message;
+  }
 }
 
 async function renderSchedules(container){
