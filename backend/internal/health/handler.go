@@ -2,10 +2,10 @@ package health
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -17,26 +17,21 @@ func NewHandler(db *pgxpool.Pool) Handler {
 	return Handler{db: db}
 }
 
-func (h Handler) Health(w http.ResponseWriter, _ *http.Request) {
-	_ = json.NewEncoder(w).Encode(map[string]string{
-		"status": "ok",
-	})
+func (h Handler) Health(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-func (h Handler) Ready(w http.ResponseWriter, _ *http.Request) {
+func (h Handler) Ready(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	if err := h.db.Ping(ctx); err != nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
-		_ = json.NewEncoder(w).Encode(map[string]string{
+		c.JSON(http.StatusServiceUnavailable, gin.H{
 			"status": "unavailable",
 			"error":  err.Error(),
 		})
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(map[string]string{
-		"status": "ready",
-	})
+	c.JSON(http.StatusOK, gin.H{"status": "ready"})
 }

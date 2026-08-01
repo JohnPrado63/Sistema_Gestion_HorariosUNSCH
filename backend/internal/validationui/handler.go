@@ -1,8 +1,9 @@
 package validationui
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 
 	"unsch-horarios/backend/internal/schedule/validation"
 )
@@ -22,14 +23,13 @@ func NewHandler() Handler {
 	return Handler{}
 }
 
-func (h Handler) Page(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, _ = w.Write([]byte(pageHTML))
+func (h Handler) Page(c *gin.Context) {
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.String(http.StatusOK, pageHTML)
 }
 
-func (h Handler) Scenarios(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(buildScenarios())
+func (h Handler) Scenarios(c *gin.Context) {
+	c.JSON(http.StatusOK, buildScenarios())
 }
 
 func buildScenarios() []Scenario {
@@ -41,8 +41,8 @@ func buildScenarios() []Scenario {
 			"El docente 10 ya dicta otra clase el lunes entre los slots 4 y 5.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed: demoBlock(1, 10, 1, 1, 1, 100, 1, 3, 4),
-				Existing: []validation.Block{demoBlock(2, 10, 2, 2, 2, 200, 1, 4, 5)},
+				Proposed: demoBlock(1, 10, 1, 1, 100, 1, 3, 4),
+				Existing: []validation.Block{demoBlock(2, 10, 2, 2, 200, 1, 4, 5)},
 			},
 		),
 		placementScenario(
@@ -52,8 +52,8 @@ func buildScenarios() []Scenario {
 			"El aula 5 ya esta ocupada en el rango elegido.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed: demoBlock(1, 10, 1, 1, 5, 100, 1, 3, 4),
-				Existing: []validation.Block{demoBlock(2, 20, 2, 2, 5, 200, 1, 4, 5)},
+				Proposed: demoBlock(1, 10, 1, 1, 100, 1, 3, 4),
+				Existing: []validation.Block{demoBlock(2, 20, 2, 2, 200, 1, 4, 5)},
 			},
 		),
 		placementScenario(
@@ -63,7 +63,7 @@ func buildScenarios() []Scenario {
 			"La clase cae dentro de la franja semanal reservada del departamento 7.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed:           withDepartment(demoBlock(1, 10, 1, 1, 1, 100, 1, 3, 4), 7),
+				Proposed:           withDepartment(demoBlock(1, 10, 1, 1, 100, 1, 3, 4), 7),
 				DepartmentSessions: []validation.DepartmentSession{{DepartmentID: 7, Day: 1, StartSlot: 4, EndSlot: 5}},
 			},
 		),
@@ -74,8 +74,8 @@ func buildScenarios() []Scenario {
 			"El docente termina en un pabellon y empieza inmediatamente en otro.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed:  withPavilion(demoBlock(1, 10, 1, 1, 1, 100, 1, 4, 5), 2),
-				Existing:  []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 2, 100, 1, 2, 3), 1)},
+				Proposed:  withPavilion(demoBlock(1, 10, 1, 1, 100, 1, 4, 5), 2),
+				Existing:  []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 100, 1, 2, 3), 1)},
 				Distances: []validation.Distance{{FromPavilionID: 1, ToPavilionID: 2, Minutes: 10}},
 			},
 		),
@@ -86,8 +86,8 @@ func buildScenarios() []Scenario {
 			"Hay una hora libre, pero la matriz estima 90 minutos de traslado.",
 			validation.SeverityWarning,
 			validation.PlacementInput{
-				Proposed:  withPavilion(demoBlock(1, 10, 1, 1, 1, 100, 1, 5, 6), 2),
-				Existing:  []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 2, 100, 1, 2, 3), 1)},
+				Proposed:  withPavilion(demoBlock(1, 10, 1, 1, 100, 1, 5, 6), 2),
+				Existing:  []validation.Block{withPavilion(demoBlock(2, 10, 1, 2, 100, 1, 2, 3), 1)},
 				Distances: []validation.Distance{{FromPavilionID: 1, ToPavilionID: 2, Minutes: 90}},
 			},
 		),
@@ -99,8 +99,8 @@ func buildScenarios() []Scenario {
 			"Dos cursos obligatorios de la serie 8 coinciden en el mismo horario.",
 			validation.SeverityInfo,
 			validation.PlacementInput{
-				Proposed: withCourse(demoBlock(1, 10, 1, 1, 1, 8, 1, 3, 4), 101),
-				Existing: []validation.Block{withCourse(demoBlock(2, 20, 2, 2, 2, 8, 1, 4, 5), 102)},
+				Proposed: withCourse(demoBlock(1, 10, 1, 1, 8, 1, 3, 4), 101),
+				Existing: []validation.Block{withCourse(demoBlock(2, 20, 2, 2, 8, 1, 4, 5), 102)},
 			},
 		),
 		placementScenario(
@@ -110,8 +110,8 @@ func buildScenarios() []Scenario {
 			"Otra escuela ya reservo el aula compartida 5 en el mismo instante.",
 			validation.SeverityBlocker,
 			validation.PlacementInput{
-				Proposed: withSharedRoom(demoBlock(1, 10, 1, 1, 5, 100, 1, 3, 4)),
-				Existing: []validation.Block{withSharedRoom(demoBlock(2, 20, 2, 2, 5, 200, 1, 4, 5))},
+				Proposed: withSharedRoom(demoBlock(1, 10, 1, 1, 100, 1, 3, 4)),
+				Existing: []validation.Block{withSharedRoom(demoBlock(2, 20, 2, 2, 200, 1, 4, 5))},
 			},
 		),
 		auditScenario(),
@@ -124,8 +124,8 @@ func buildScenarios() []Scenario {
 			"No hay cruces ni advertencias; la asignacion puede continuar.",
 			"OK",
 			validation.PlacementInput{
-				Proposed: demoBlock(1, 10, 1, 1, 1, 100, 1, 6, 7),
-				Existing: []validation.Block{demoBlock(2, 20, 2, 2, 2, 200, 1, 3, 4)},
+				Proposed: demoBlock(1, 10, 1, 1, 100, 1, 6, 7),
+				Existing: []validation.Block{demoBlock(2, 20, 2, 2, 200, 1, 3, 4)},
 				State:    validation.StateDraft,
 			},
 		),
@@ -147,14 +147,14 @@ func auditScenario() Scenario {
 }
 
 func capacityScenario(id string, title string, state validation.ScheduleState, expected validation.Severity) Scenario {
-	proposed := demoBlock(1, 10, 1, 1, 5, 100, 1, 3, 4)
+	proposed := demoBlock(1, 10, 1, 1, 100, 1, 3, 4)
 	proposed.Enrollment = 55
 	proposed.RoomCapacity = 40
 	return Scenario{ID: id, Rule: validation.RuleCapacityReadjustment, Title: title, Description: "La matricula supera el aforo del aula asignada.", Expected: expected, Findings: validation.ValidatePlacement(validation.PlacementInput{Proposed: proposed, State: state})}
 }
 
-func demoBlock(id int, teacherID int, schoolID int, groupID int, roomID int, seriesID int, day int, start int, end int) validation.Block {
-	return validation.Block{ID: id, TeacherID: teacherID, SchoolID: schoolID, GroupID: groupID, RoomID: roomID, SeriesID: seriesID, Day: day, StartSlot: start, EndSlot: end}
+func demoBlock(id int, teacherID int, schoolID int, groupID int, seriesID int, day int, start int, end int) validation.Block {
+	return validation.Block{ID: id, TeacherID: teacherID, SchoolID: schoolID, GroupID: groupID, SeriesID: seriesID, Day: day, StartSlot: start, EndSlot: end}
 }
 
 func withDepartment(block validation.Block, departmentID int) validation.Block {

@@ -30,8 +30,8 @@ INSERT INTO aula (id_pabellon, id_escuela, codigo, tipo, aforo, es_compartida) V
 (1, 1, 'AULA-102', 'TEORIA', 45, false),
 (2, NULL, 'AULA-AUDITORIO', 'COMPARTIDA', 100, true);
 
--- 4. Usuarios Base
-INSERT INTO usuario (nombre, email, rol) VALUES 
-('Administrador TI', 'admin@unsch.edu.pe', 'ADMIN_TI'),
-('Director de Escuela IS', 'director.sistemas@unsch.edu.pe', 'DIRECTOR_ESCUELA'),
-('Jefe DGA', 'dga@unsch.edu.pe', 'DGA');
+-- 4. Usuarios Base (password: admin123)
+INSERT INTO usuario (nombre, email, password_hash, rol) VALUES
+('Administrador TI', 'admin@unsch.edu.pe', '$2a$10$rtqeT8saALppb511PgvD/u3iTH02gDEJN/qlqOslOUwgINa3jAs9O', 'ADMIN_TI'),
+('Director de Escuela IS', 'director.sistemas@unsch.edu.pe', '$2a$10$rtqeT8saALppb511PgvD/u3iTH02gDEJN/qlqOslOUwgINa3jAs9O', 'DIRECTOR_ESCUELA'),
+('Jefe DGA', 'dga@unsch.edu.pe', '$2a$10$rtqeT8saALppb511PgvD/u3iTH02gDEJN/qlqOslOUwgINa3jAs9O', 'DGA');

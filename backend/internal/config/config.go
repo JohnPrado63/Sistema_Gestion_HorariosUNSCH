@@ -2,7 +2,11 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -16,6 +20,7 @@ type Config struct {
 }
 
 func Load() Config {
+	loadEnvFile()
 	return Config{
 		Port:   env("APP_PORT", "8081"),
 		DBHost: env("DB_HOST", "127.0.0.1"),
@@ -25,6 +30,40 @@ func Load() Config {
 		DBPass: os.Getenv("DB_PASSWORD"),
 		DBSSL:  env("DB_SSLMODE", "disable"),
 	}
+}
+
+func loadEnvFile() {
+	cwd, _ := os.Getwd()
+
+	candidates := []string{
+		filepath.Join(cwd, ".env"),
+		filepath.Join(cwd, "..", ".env"),
+		filepath.Join(cwd, "..", "..", ".env"),
+	}
+	for _, path := range candidates {
+		absPath, _ := filepath.Abs(path)
+		log.Printf("config: checking .env at %s", absPath)
+		if _, err := os.Stat(path); err == nil {
+			log.Printf("config: .env found, attempting load...")
+			err := godotenv.Load(path)
+			if err != nil {
+				log.Printf("config: godotenv.Load error: %v", err)
+				continue
+			}
+			log.Printf("config: loaded .env from %s", path)
+			return
+		}
+	}
+	log.Printf("config: no .env file found in any candidate path")
+}
+
+func backendDir(file string) string {
+	exe, err := os.Executable()
+	if err != nil {
+		return file
+	}
+	dir, _ := filepath.EvalSymlinks(filepath.Dir(exe))
+	return filepath.Join(dir, "..", file)
 }
 
 func (c Config) DatabaseURL() string {

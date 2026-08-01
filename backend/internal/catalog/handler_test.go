@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
 )
 
 type mockRepository struct {
@@ -147,6 +149,13 @@ func (m *mockRepository) ListBitacoraAuditoria(ctx context.Context) ([]BitacoraA
 	return m.bitacora, nil
 }
 
+func testContext() (*gin.Context, *httptest.ResponseRecorder) {
+	gin.SetMode(gin.TestMode)
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	return c, w
+}
+
 func TestFacultades_ReturnsJSON(t *testing.T) {
 	repo := &mockRepository{
 		facultades: []Facultad{
@@ -157,9 +166,10 @@ func TestFacultades_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/facultades", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Facultades(w, req)
+	h.Facultades(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -179,9 +189,10 @@ func TestFacultades_Returns500OnError(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/facultades", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Facultades(w, req)
+	h.Facultades(c)
 
 	if w.Code != http.StatusInternalServerError {
 		t.Fatalf("expected status 500, got %d", w.Code)
@@ -197,9 +208,10 @@ func TestDepartamentos_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/departamentos", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Departamentos(w, req)
+	h.Departamentos(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -223,9 +235,10 @@ func TestEscuelas_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/escuelas", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Escuelas(w, req)
+	h.Escuelas(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -241,9 +254,10 @@ func TestAulas_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/aulas", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Aulas(w, req)
+	h.Aulas(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -259,9 +273,10 @@ func TestDocentes_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/docentes", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Docentes(w, req)
+	h.Docentes(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -277,9 +292,10 @@ func TestPeriodos_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/periodos", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Periodos(w, req)
+	h.Periodos(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -295,9 +311,10 @@ func TestHorarios_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/horarios", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Horarios(w, req)
+	h.Horarios(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -313,9 +330,10 @@ func TestBloques_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/bloques", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Bloques(w, req)
+	h.Bloques(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -331,9 +349,10 @@ func TestBitacora_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/bitacora", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Bitacora(w, req)
+	h.Bitacora(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -349,9 +368,10 @@ func TestCargasAcademicas_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/cargas-academicas", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.CargasAcademicas(w, req)
+	h.CargasAcademicas(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -367,9 +387,10 @@ func TestGrupos_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/grupos", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Grupos(w, req)
+	h.Grupos(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -385,9 +406,10 @@ func TestPlanesEstudio_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/planes", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.PlanesEstudio(w, req)
+	h.PlanesEstudio(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -403,9 +425,10 @@ func TestSeries_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/series", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Series(w, req)
+	h.Series(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -421,9 +444,10 @@ func TestCursos_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/cursos", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Cursos(w, req)
+	h.Cursos(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -439,9 +463,10 @@ func TestSesionesDepartamento_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/sesiones-departamento", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.SesionesDepartamento(w, req)
+	h.SesionesDepartamento(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -457,9 +482,10 @@ func TestLocales_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/locales", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Locales(w, req)
+	h.Locales(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -475,9 +501,10 @@ func TestPabellones_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/pabellones", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Pabellones(w, req)
+	h.Pabellones(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -493,9 +520,10 @@ func TestMatrizDistancias_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/matriz-distancias", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.MatrizDistancias(w, req)
+	h.MatrizDistancias(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)
@@ -511,9 +539,10 @@ func TestUsuarios_ReturnsJSON(t *testing.T) {
 	h := Handler{repo: repo}
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/usuarios", nil)
-	w := httptest.NewRecorder()
+	c, w := testContext()
+	c.Request = req
 
-	h.Usuarios(w, req)
+	h.Usuarios(c)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w.Code)

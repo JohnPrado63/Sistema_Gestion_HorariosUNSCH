@@ -1,8 +1,9 @@
 package schedule
 
 import (
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 
 	"unsch-horarios/backend/internal/schedule/validation"
 )
@@ -13,15 +14,10 @@ func NewHandler() Handler {
 	return Handler{}
 }
 
-func (h Handler) ValidatePlacement(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+func (h Handler) ValidatePlacement(c *gin.Context) {
 	var input validation.PlacementInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -29,18 +25,13 @@ func (h Handler) ValidatePlacement(w http.ResponseWriter, r *http.Request) {
 	if findings == nil {
 		findings = []validation.Finding{}
 	}
-	respond(w, findings)
+	c.JSON(http.StatusOK, findings)
 }
 
-func (h Handler) ValidateAuditChange(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+func (h Handler) ValidateAuditChange(c *gin.Context) {
 	var input validation.AuditChangeInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -48,18 +39,13 @@ func (h Handler) ValidateAuditChange(w http.ResponseWriter, r *http.Request) {
 	if findings == nil {
 		findings = []validation.Finding{}
 	}
-	respond(w, findings)
+	c.JSON(http.StatusOK, findings)
 }
 
-func (h Handler) ValidateTeachingLoad(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
+func (h Handler) ValidateTeachingLoad(c *gin.Context) {
 	var input validation.TeachingLoadInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -67,10 +53,5 @@ func (h Handler) ValidateTeachingLoad(w http.ResponseWriter, r *http.Request) {
 	if findings == nil {
 		findings = []validation.Finding{}
 	}
-	respond(w, findings)
-}
-
-func respond[T any](w http.ResponseWriter, data T) {
-	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(data)
+	c.JSON(http.StatusOK, findings)
 }

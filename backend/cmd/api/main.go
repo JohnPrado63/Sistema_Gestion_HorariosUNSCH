@@ -1,4 +1,3 @@
-// backend/cmd/api/main.go
 package main
 
 import (
@@ -26,9 +25,11 @@ func main() {
 	}
 	defer db.Close()
 
+	router := apphttp.NewRouter(db)
+
 	server := &http.Server{
 		Addr:              ":" + cfg.Port,
-		Handler:           apphttp.NewRouter(db),
+		Handler:           router,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

@@ -1,9 +1,9 @@
 package catalog
 
 import (
-	"encoding/json"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -15,107 +15,106 @@ func NewHandler(db *pgxpool.Pool) Handler {
 	return Handler{repo: NewRepository(db)}
 }
 
-func (h Handler) Facultades(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListFacultades(r.Context())
-	respond(w, data, err)
+func (h Handler) Facultades(c *gin.Context) {
+	data, err := h.repo.ListFacultades(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Departamentos(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListDepartamentos(r.Context())
-	respond(w, data, err)
+func (h Handler) Departamentos(c *gin.Context) {
+	data, err := h.repo.ListDepartamentos(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Escuelas(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListEscuelas(r.Context())
-	respond(w, data, err)
+func (h Handler) Escuelas(c *gin.Context) {
+	data, err := h.repo.ListEscuelas(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Aulas(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListAulas(r.Context())
-	respond(w, data, err)
+func (h Handler) Aulas(c *gin.Context) {
+	data, err := h.repo.ListAulas(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Usuarios(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListUsuarios(r.Context())
-	respond(w, data, err)
+func (h Handler) Usuarios(c *gin.Context) {
+	data, err := h.repo.ListUsuarios(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) PlanesEstudio(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListPlanesEstudio(r.Context())
-	respond(w, data, err)
+func (h Handler) PlanesEstudio(c *gin.Context) {
+	data, err := h.repo.ListPlanesEstudio(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Series(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListSeries(r.Context())
-	respond(w, data, err)
+func (h Handler) Series(c *gin.Context) {
+	data, err := h.repo.ListSeries(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Cursos(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListCursos(r.Context())
-	respond(w, data, err)
+func (h Handler) Cursos(c *gin.Context) {
+	data, err := h.repo.ListCursos(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Docentes(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListDocentes(r.Context())
-	respond(w, data, err)
+func (h Handler) Docentes(c *gin.Context) {
+	data, err := h.repo.ListDocentes(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Periodos(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListPeriodos(r.Context())
-	respond(w, data, err)
+func (h Handler) Periodos(c *gin.Context) {
+	data, err := h.repo.ListPeriodos(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) SesionesDepartamento(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListSesionesDepartamento(r.Context())
-	respond(w, data, err)
+func (h Handler) SesionesDepartamento(c *gin.Context) {
+	data, err := h.repo.ListSesionesDepartamento(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Locales(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListLocales(r.Context())
-	respond(w, data, err)
+func (h Handler) Locales(c *gin.Context) {
+	data, err := h.repo.ListLocales(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Pabellones(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListPabellones(r.Context())
-	respond(w, data, err)
+func (h Handler) Pabellones(c *gin.Context) {
+	data, err := h.repo.ListPabellones(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) MatrizDistancias(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListDistancias(r.Context())
-	respond(w, data, err)
+func (h Handler) MatrizDistancias(c *gin.Context) {
+	data, err := h.repo.ListDistancias(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) CargasAcademicas(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListCargasAcademicas(r.Context())
-	respond(w, data, err)
+func (h Handler) CargasAcademicas(c *gin.Context) {
+	data, err := h.repo.ListCargasAcademicas(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Grupos(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListGrupos(r.Context())
-	respond(w, data, err)
+func (h Handler) Grupos(c *gin.Context) {
+	data, err := h.repo.ListGrupos(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Horarios(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListHorarios(r.Context())
-	respond(w, data, err)
+func (h Handler) Horarios(c *gin.Context) {
+	data, err := h.repo.ListHorarios(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Bloques(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListBloquesHorario(r.Context())
-	respond(w, data, err)
+func (h Handler) Bloques(c *gin.Context) {
+	data, err := h.repo.ListBloquesHorario(c.Request.Context())
+	respond(c, data, err)
 }
 
-func (h Handler) Bitacora(w http.ResponseWriter, r *http.Request) {
-	data, err := h.repo.ListBitacoraAuditoria(r.Context())
-	respond(w, data, err)
+func (h Handler) Bitacora(c *gin.Context) {
+	data, err := h.repo.ListBitacoraAuditoria(c.Request.Context())
+	respond(c, data, err)
 }
 
-func respond[T any](w http.ResponseWriter, data T, err error) {
+func respond[T any](c *gin.Context, data T, err error) {
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(data)
+	c.JSON(http.StatusOK, data)
 }
