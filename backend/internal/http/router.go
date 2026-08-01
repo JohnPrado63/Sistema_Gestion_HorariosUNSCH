@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"unsch-horarios/backend/internal/auth"
+	"unsch-horarios/backend/internal/cargaacademica"
 	"unsch-horarios/backend/internal/catalog"
 	"unsch-horarios/backend/internal/health"
 	"unsch-horarios/backend/internal/schedule"
@@ -37,6 +38,7 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 
 	cat := catalogHandler(db)
 	sch := scheduleHandler()
+	ca := cargaacademicaHandler(db)
 
 	api := r.Group("/api/v1")
 	{
@@ -59,6 +61,18 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		api.GET("/horarios", cat.Horarios)
 		api.GET("/bloques", cat.Bloques)
 		api.GET("/bitacora", cat.Bitacora)
+
+		cargaRoutes := api.Group("/carga-academica")
+		{
+			cargaRoutes.GET("", ca.ListCargas)
+			cargaRoutes.GET("/:id", ca.GetCarga)
+			cargaRoutes.POST("", ca.CreateCarga)
+			cargaRoutes.POST("/:id/grupos", ca.CreateGrupo)
+			cargaRoutes.PUT("/grupos/:idGrupo", ca.UpdateGrupo)
+			cargaRoutes.POST("/:id/aprobar", ca.ApproveCarga)
+			cargaRoutes.GET("/resumen-docentes", ca.GetResumenDocentes)
+			cargaRoutes.GET("/docente/:idDocente/horas", ca.GetHorasDocente)
+		}
 
 		validaciones := api.Group("/validaciones")
 		{
@@ -112,6 +126,10 @@ func scheduleHandler() schedule.Handler {
 
 func validationHandler() validationui.Handler {
 	return validationui.NewHandler()
+}
+
+func cargaacademicaHandler(db *pgxpool.Pool) *cargaacademica.Handler {
+	return cargaacademica.NewHandler(db)
 }
 
 func setupFrontend() string {

@@ -12,6 +12,8 @@ CREATE TYPE tipo_aula_enum AS ENUM ('TEORIA', 'PRACTICA', 'COMPARTIDA');
 CREATE TYPE estado_carga_enum AS ENUM ('BORRADOR', 'AUTORIZADO');
 CREATE TYPE tipo_componente_enum AS ENUM ('TEORIA', 'PRACTICA');
 CREATE TYPE estado_horario_enum AS ENUM ('BORRADOR', 'PRELIMINAR', 'EN_REAJUSTE', 'OFICIAL', 'REAJUSTADO');
+CREATE TYPE estado_bloque_enum AS ENUM ('BORRADOR', 'CONFIRMADO');
+CREATE TYPE estado_importacion_enum AS ENUM ('PENDIENTE', 'PROCESANDO', 'COMPLETADO', 'FALLIDO');
 CREATE TYPE rol_usuario_enum AS ENUM (
     'ADMIN_TI',
     'JEFE_DEPTO',
@@ -175,6 +177,7 @@ CREATE TABLE bloque_horario (
     dia_semana INT NOT NULL CHECK (dia_semana BETWEEN 1 AND 6), -- 1: Lunes, 6: Sábado
     slot_inicio INT NOT NULL CHECK (slot_inicio BETWEEN 1 AND 14), -- Slots rígidos de 60 min (1 = 07:00-08:00)
     slot_fin INT NOT NULL CHECK (slot_fin BETWEEN 1 AND 14),
+    estado estado_bloque_enum NOT NULL DEFAULT 'BORRADOR',
     CONSTRAINT chk_slot_valido CHECK (slot_fin >= slot_inicio)
 );
 
@@ -200,8 +203,37 @@ CREATE TABLE bitacora_auditoria (
     fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- -----------------------------------------------------------------------------
+-- 7. DOMINIO INTEGRACIÓN SIIGE (STAGING)
+-- -----------------------------------------------------------------------------
+
+CREATE TABLE siige_log (
+    id_log SERIAL PRIMARY KEY,
+    id_usuario INT REFERENCES usuario(id_usuario) ON DELETE SET NULL,
+    id_periodo INT REFERENCES periodo_academico(id_periodo) ON DELETE SET NULL,
+    estado estado_importacion_enum NOT NULL DEFAULT 'PENDIENTE',
+    total_registros INT NOT NULL DEFAULT 0,
+    registros_exitosos INT NOT NULL DEFAULT 0,
+    registros_fallidos INT NOT NULL DEFAULT 0,
+    errores_json JSONB,
+    fecha_inicio TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_fin TIMESTAMP
+);
+
+CREATE TABLE siige_importacion (
+    id_importacion SERIAL PRIMARY KEY,
+    id_log INT REFERENCES siige_log(id_log) ON DELETE SET NULL,
+    tipo_registro VARCHAR(50) NOT NULL,
+    codigo_externo VARCHAR(100) NOT NULL,
+    datos_json JSONB NOT NULL,
+    id_escuela INT REFERENCES escuela_profesional(id_escuela) ON DELETE SET NULL,
+    id_periodo INT REFERENCES periodo_academico(id_periodo) ON DELETE SET NULL,
+    procesada BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha_importacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- =============================================================================
--- 7. ÍNDICES DE RENDIMIENTO (OPTIMIZACIÓN DEL MOTOR DE VALIDACIONES)
+-- 8. ÍNDICES DE RENDIMIENTO (OPTIMIZACIÓN DEL MOTOR DE VALIDACIONES)
 -- =============================================================================
 
 -- RV-01: Búsqueda rápida de cruce de docente
