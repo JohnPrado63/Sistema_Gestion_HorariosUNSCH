@@ -26,6 +26,11 @@ type RepositoryInterface interface {
 	ListHorarios(ctx context.Context) ([]Horario, error)
 	ListBloquesHorario(ctx context.Context) ([]BloqueHorario, error)
 	ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAuditoria, error)
+	CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error)
+	VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error)
+	CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error)
+	GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error)
+	GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error)
 }
 
 type Repository struct {
@@ -398,4 +403,189 @@ func (r Repository) ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAudito
 	}
 
 	return items, rows.Err()
+}
+
+func (r Repository) CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error) {
+	var idHorario int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO horario (id_escuela, id_periodo, estado, version_reajuste)
+		VALUES ($1, $2, 'BORRADOR', 0)
+		ON CONFLICT (id_escuela, id_periodo) DO UPDATE SET id_escuela = EXCLUDED.id_escuela
+		RETURNING id_horario
+	`, input.IDEscuela, input.IDPeriodo).Scan(&idHorario)
+	if err != nil {
+		return nil, err
+	}
+
+	var h Horario
+	err = r.db.QueryRow(ctx, `
+		SELECT id_horario, id_escuela, id_periodo, estado::text, version_reajuste, fecha_actualizacion
+		FROM horario WHERE id_horario = $1
+	`, idHorario).Scan(&h.ID, &h.IDEscuela, &h.IDPeriodo, &h.Estado, &h.VersionReajuste, &h.FechaActualizacion)
+	if err != nil {
+		return nil, err
+	}
+	return &h, nil
+}
+
+type ConflictoBloque struct {
+	Tipo       string `json:"tipo"`
+	Mensaje    string `json:"mensaje"`
+	Detalle    string `json:"detalle,omitempty"`
+}
+
+func (r Repository) VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error) {
+	var conflictos []ConflictoBloque
+
+	if input.IDDocente != nil {
+		var count int
+		err := r.db.QueryRow(ctx, `
+			SELECT COUNT(*) FROM bloque_horario bh
+			JOIN grupo g ON g.id_grupo = bh.id_grupo
+			JOIN carga_academica ca ON ca.id_carga = g.id_carga
+			JOIN horario h ON h.id_horario = bh.id_horario
+			WHERE g.id_docente = $1 AND h.id_periodo = $2
+			  AND bh.dia_semana = $3
+			  AND bh.slot_inicio < $5 AND bh.slot_fin > $4
+		`, *input.IDDocente, input.IDHorario, input.DiaSemana, input.SlotInicio, input.SlotFin).Scan(&count)
+		if err != nil {
+			return nil, err
+		}
+		if count > 0 {
+			var nombreDocente string
+			r.db.QueryRow(ctx, `SELECT nombres || ' ' || apellidos FROM docente WHERE id_docente = $1`, *input.IDDocente).Scan(&nombreDocente)
+			conflictos = append(conflictos, ConflictoBloque{
+				Tipo:    "CRUCE_DOCENTE",
+				Mensaje:  "El docente " + nombreDocente + " ya tiene una clase en ese horario",
+			})
+		}
+	}
+
+	var countAula int
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*) FROM bloque_horario
+		WHERE id_horario = $1 AND dia_semana = $2
+		  AND slot_inicio < $4 AND slot_fin > $3
+		  AND id_aula = $5
+	`, input.IDHorario, input.DiaSemana, input.SlotInicio, input.SlotFin, input.IDAula).Scan(&countAula)
+	if err != nil {
+		return nil, err
+	}
+	if countAula > 0 {
+		var codigoAula string
+		r.db.QueryRow(ctx, `SELECT codigo FROM aula WHERE id_aula = $1`, input.IDAula).Scan(&codigoAula)
+		conflictos = append(conflictos, ConflictoBloque{
+			Tipo:    "CRUCE_AULA",
+			Mensaje:  "El aula " + codigoAula + " ya está ocupada en ese horario",
+		})
+	}
+
+	return conflictos, nil
+}
+
+func (r Repository) CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error) {
+	var idBloque int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO bloque_horario (id_horario, id_grupo, id_aula, id_docente, dia_semana, slot_inicio, slot_fin)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id_bloque
+	`, input.IDHorario, input.IDGrupo, input.IDAula, input.IDDocente, input.DiaSemana, input.SlotInicio, input.SlotFin).Scan(&idBloque)
+	if err != nil {
+		return nil, err
+	}
+
+	var b BloqueHorario
+	err = r.db.QueryRow(ctx, `
+		SELECT id_bloque, id_horario, id_grupo, id_aula, id_docente, dia_semana, slot_inicio, slot_fin
+		FROM bloque_horario WHERE id_bloque = $1
+	`, idBloque).Scan(&b.ID, &b.IDHorario, &b.IDGrupo, &b.IDAula, &b.IDDocente, &b.DiaSemana, &b.SlotInicio, &b.SlotFin)
+	if err != nil {
+		return nil, err
+	}
+	return &b, nil
+}
+
+func (r Repository) GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT bh.id_bloque, bh.id_horario, bh.id_grupo, g.id_carga, e.id_escuela,
+		       bh.id_aula, a.id_pabellon, bh.id_docente, COALESCE(d.id_departamento, 0),
+		       a.codigo as codigo_aula,
+		       COALESCE(d.nombres || ' ' || d.apellidos, '') as nombre_docente,
+		       g.codigo_grupo, g.tipo_componente::text,
+		       h.estado::text,
+		       bh.dia_semana, bh.slot_inicio, bh.slot_fin,
+		       e.nombre as escuela_nombre, c.codigo as curso_codigo, c.nombre as curso_nombre
+		FROM bloque_horario bh
+		JOIN horario h ON h.id_horario = bh.id_horario
+		JOIN grupo g ON g.id_grupo = bh.id_grupo
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		JOIN escuela_profesional e ON e.id_escuela = h.id_escuela
+		JOIN aula a ON a.id_aula = bh.id_aula
+		LEFT JOIN docente d ON d.id_docente = bh.id_docente
+		WHERE bh.id_horario = $1
+		ORDER BY bh.dia_semana, bh.slot_inicio
+	`, idHorario)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []BloqueContexto
+	for rows.Next() {
+		var b BloqueContexto
+		if err := rows.Scan(&b.ID, &b.IDHorario, &b.IDGrupo, &b.IDCarga, &b.IDEscuela,
+			&b.IDAula, &b.IDAulaPabellon, &b.IDDocente, &b.IDDocenteDepto,
+			&b.CodigoAula, &b.NombreDocente,
+			&b.CodigoGrupo, &b.TipoComponente, &b.EstadoHorario,
+			&b.DiaSemana, &b.SlotInicio, &b.SlotFin,
+			&b.NombreEscuela, &b.CodigoCurso, &b.NombreCurso); err != nil {
+			return nil, err
+		}
+		items = append(items, b)
+	}
+	return items, rows.Err()
+}
+
+func (r Repository) GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT g.id_grupo, g.id_carga, g.codigo_grupo, g.tipo_componente::text,
+		       g.id_docente, COALESCE(d.nombres || ' ' || d.apellidos, '') as docente_nombre,
+		       c.codigo, c.nombre, c.horas_teoria, c.horas_practica
+		FROM grupo g
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		LEFT JOIN docente d ON d.id_docente = g.id_docente
+		WHERE ca.id_escuela = $1 AND ca.id_periodo = $2 AND ca.estado = 'AUTORIZADO'
+		ORDER BY c.codigo, g.codigo_grupo
+	`, idEscuela, idPeriodo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []GrupoInfo
+	for rows.Next() {
+		var g GrupoInfo
+		if err := rows.Scan(&g.ID, &g.IDCarga, &g.CodigoGrupo, &g.TipoComponente,
+			&g.IDDocente, &g.DocenteNombre, &g.CodigoCurso, &g.NombreCurso,
+			&g.HorasTeoria, &g.HorasPractica); err != nil {
+			return nil, err
+		}
+		items = append(items, g)
+	}
+	return items, rows.Err()
+}
+
+type GrupoInfo struct {
+	ID             int     `json:"id_grupo"`
+	IDCarga       int     `json:"id_carga"`
+	CodigoGrupo   string  `json:"codigo_grupo"`
+	TipoComponente string  `json:"tipo_componente"`
+	IDDocente     *int    `json:"id_docente"`
+	DocenteNombre string  `json:"docente_nombre"`
+	CodigoCurso   string  `json:"codigo_curso"`
+	NombreCurso   string  `json:"nombre_curso"`
+	HorasTeoria   int     `json:"horas_teoria"`
+	HorasPractica int     `json:"horas_practica"`
 }

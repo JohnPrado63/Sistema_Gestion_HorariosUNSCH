@@ -260,3 +260,93 @@ func (h *Handler) GetHorasDocente(c *gin.Context) {
 		"horas_restantes": 16 - horas,
 	})
 }
+
+func (h *Handler) GetDisponibilidadDocente(c *gin.Context) {
+	idDocente, err := strconv.Atoi(c.Param("idDocente"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalido"})
+		return
+	}
+
+	idPeriodoStr := c.Query("periodo")
+	idPeriodo, err := strconv.Atoi(idPeriodoStr)
+	if idPeriodo == 0 {
+		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No hay periodo activo"})
+			return
+		}
+		idPeriodo = *periodoActivo
+	}
+
+	bloques, err := h.repo.GetBloquesDocente(c.Request.Context(), idDocente, idPeriodo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"docente_id":        idDocente,
+		"id_periodo":        idPeriodo,
+		"bloques_asignados": bloques,
+	})
+}
+
+func (h *Handler) VerificarDisponibilidad(c *gin.Context) {
+	var input VerificarDisponibilidadInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	idPeriodoStr := c.Query("periodo")
+	idPeriodo, err := strconv.Atoi(idPeriodoStr)
+	if idPeriodo == 0 {
+		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No hay periodo activo"})
+			return
+		}
+		idPeriodo = *periodoActivo
+	}
+
+	conflicto, err := h.repo.VerificarConflictoDocente(c.Request.Context(), input.DocenteID, input.DiaSemana, input.SlotInicio, input.SlotFin, idPeriodo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	response := VerificarDisponibilidadResponse{
+		TieneConflicto: conflicto != nil,
+	}
+
+	if conflicto != nil {
+		dias := []string{"", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"}
+		horas := map[int]string{
+			1: "07:00", 2: "08:00", 3: "09:00", 4: "10:00", 5: "11:00", 6: "12:00",
+			7: "13:00", 8: "14:00", 9: "15:00", 10: "16:00", 11: "17:00", 12: "18:00",
+			13: "19:00", 14: "20:00",
+		}
+		slotSolicitado := horas[input.SlotInicio] + "-" + horas[input.SlotFin]
+		slotOcupado := horas[conflicto.SlotInicio] + "-" + horas[conflicto.SlotFin]
+		nombreDia := dias[conflicto.DiaSemana]
+		if nombreDia == "" {
+			nombreDia = "Día " + strconv.Itoa(conflicto.DiaSemana)
+		}
+
+		response.Conflictos = []ConflictoDetalle{
+			{
+				Tipo:           conflicto.Tipo,
+				DiaSemana:      conflicto.DiaSemana,
+				SlotSolicitado: slotSolicitado,
+				SlotOcupado:    slotOcupado,
+				Escuela:        conflicto.Escuela,
+				CursoCodigo:    conflicto.CursoCodigo,
+				CursoNombre:    conflicto.CursoNombre,
+				GrupoCodigo:    conflicto.GrupoCodigo,
+			},
+		}
+	}
+
+	c.JSON(http.StatusOK, response)
+}

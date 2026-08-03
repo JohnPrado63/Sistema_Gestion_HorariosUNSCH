@@ -1,5 +1,7 @@
 package catalog
 
+import "time"
+
 type Facultad struct {
 	ID     int    `json:"id_facultad"`
 	Nombre string `json:"nombre"`
@@ -122,12 +124,12 @@ type Grupo struct {
 }
 
 type Horario struct {
-	ID                 int    `json:"id_horario"`
-	IDEscuela          int    `json:"id_escuela"`
-	IDPeriodo          int    `json:"id_periodo"`
-	Estado             string `json:"estado"`
-	VersionReajuste    int    `json:"version_reajuste"`
-	FechaActualizacion string `json:"fecha_actualizacion"`
+	ID                 int       `json:"id_horario"`
+	IDEscuela          int       `json:"id_escuela"`
+	IDPeriodo          int       `json:"id_periodo"`
+	Estado             string    `json:"estado"`
+	VersionReajuste    int       `json:"version_reajuste"`
+	FechaActualizacion time.Time `json:"fecha_actualizacion"`
 }
 
 type BloqueHorario struct {
@@ -149,4 +151,50 @@ type BitacoraAuditoria struct {
 	MotivoJustificacion string `json:"motivo_justificacion"`
 	VersionResultante   int    `json:"version_resultante"`
 	FechaHora           string `json:"fecha_hora"`
+}
+
+type CreateHorarioInput struct {
+	IDEscuela  int `json:"id_escuela" binding:"required"`
+	IDPeriodo  int `json:"id_periodo" binding:"required"`
+}
+
+type CreateBloqueInput struct {
+	IDHorario  int    `json:"id_horario" binding:"required"`
+	IDGrupo    int    `json:"id_grupo" binding:"required"`
+	IDAula     int    `json:"id_aula" binding:"required"`
+	IDDocente  *int   `json:"id_docente"`
+	DiaSemana  int    `json:"dia_semana" binding:"required,min=1,max=6"`
+	SlotInicio int    `json:"slot_inicio" binding:"required,min=1,max=14"`
+	SlotFin    int    `json:"slot_fin" binding:"required,min=1,max=14"`
+}
+
+type UpdateBloqueInput struct {
+	IDAula     *int  `json:"id_aula"`
+	IDDocente  *int  `json:"id_docente"`
+	DiaSemana  *int  `json:"dia_semana"`
+	SlotInicio *int  `json:"slot_inicio"`
+	SlotFin    *int  `json:"slot_fin"`
+}
+
+type BloqueContexto struct {
+	ID               int    `json:"id_bloque"`
+	IDHorario        int    `json:"id_horario"`
+	IDGrupo          int    `json:"id_grupo"`
+	IDCarga          int    `json:"id_carga"`
+	IDEscuela        int    `json:"id_escuela"`
+	IDAula           int    `json:"id_aula"`
+	IDAulaPabellon   int    `json:"id_aula_pabellon"`
+	IDDocente        *int   `json:"id_docente"`
+	IDDocenteDepto   int    `json:"id_docente_departamento"`
+	CodigoAula       string `json:"codigo_aula"`
+	NombreDocente    string `json:"nombre_docente"`
+	CodigoGrupo      string `json:"codigo_grupo"`
+	TipoComponente   string `json:"tipo_componente"`
+	EstadoHorario    string `json:"estado_horario"`
+	DiaSemana        int    `json:"dia_semana"`
+	SlotInicio       int    `json:"slot_inicio"`
+	SlotFin          int    `json:"slot_fin"`
+	NombreEscuela    string `json:"nombre_escuela"`
+	CodigoCurso      string `json:"codigo_curso"`
+	NombreCurso      string `json:"nombre_curso"`
 }

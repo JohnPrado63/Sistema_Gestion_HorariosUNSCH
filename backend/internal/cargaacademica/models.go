@@ -94,3 +94,58 @@ type PropuestaBloque struct {
 	IDGrupo    int             `json:"id_grupo"`
 	Horarios   []HorarioSugerido `json:"horarios"`
 }
+
+type DisponibilidadDocente struct {
+	DocenteID       int               `json:"docente_id"`
+	Nombre          string            `json:"nombre"`
+	BloquesAsignados []BloqueAsignado `json:"bloques_asignados"`
+}
+
+type BloqueAsignado struct {
+	ID           int    `json:"id_bloque"`
+	IDHorario    int    `json:"id_horario"`
+	IDGrupo      int    `json:"id_grupo"`
+	IDCarga      int    `json:"id_carga"`
+	IDAula       int    `json:"id_aula"`
+	DocenteID    int    `json:"docente_id"`
+	EscuelaID    int    `json:"escuela_id"`
+	EscuelaNombre string `json:"escuela_nombre"`
+	CursoCodigo  string `json:"curso_codigo"`
+	CursoNombre  string `json:"curso_nombre"`
+	GrupoCodigo  string `json:"grupo_codigo"`
+	DiaSemana    int    `json:"dia_semana"`
+	SlotInicio   int    `json:"slot_inicio"`
+	SlotFin      int    `json:"slot_fin"`
+}
+
+type VerificarDisponibilidadInput struct {
+	DocenteID   int    `json:"docente_id" binding:"required"`
+	DiaSemana   int    `json:"dia_semana" binding:"required,min=1,max=6"`
+	SlotInicio  int    `json:"slot_inicio" binding:"required,min=1,max=14"`
+	SlotFin     int    `json:"slot_fin" binding:"required,min=1,max=14"`
+}
+
+type VerificarDisponibilidadResponse struct {
+	TieneConflicto bool              `json:"tiene_conflicto"`
+	Conflictos     []ConflictoDetalle `json:"conflictos,omitempty"`
+	SlotsLibres    []SlotLibre       `json:"slots_libres,omitempty"`
+}
+
+type ConflictoDetalle struct {
+	Tipo           string `json:"tipo"`
+	DiaSemana      int    `json:"dia_semana"`
+	SlotSolicitado string `json:"slot_solicitado"`
+	SlotOcupado    string `json:"slot_ocupado"`
+	Escuela        string `json:"escuela"`
+	CursoCodigo    string `json:"curso_codigo"`
+	CursoNombre    string `json:"curso_nombre"`
+	GrupoCodigo    string `json:"grupo_codigo"`
+}
+
+type SlotLibre struct {
+	DiaSemana  int    `json:"dia_semana"`
+	SlotInicio int    `json:"slot_inicio"`
+	SlotFin    int    `json:"slot_fin"`
+	HoraInicio string `json:"hora_inicio"`
+	HoraFin    string `json:"hora_fin"`
+}

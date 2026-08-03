@@ -341,3 +341,96 @@ func (r *Repository) GetPeriodoActivo(ctx context.Context) (*int, error) {
 	}
 	return &idPeriodo, nil
 }
+
+func (r *Repository) GetBloquesDocente(ctx context.Context, docenteID int, idPeriodo int) ([]BloqueAsignado, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT bh.id_bloque, bh.id_horario, bh.id_grupo, g.id_carga, bh.id_aula,
+		       g.id_docente, e.id_escuela, e.nombre as escuela,
+		       c.codigo as curso_codigo, c.nombre as curso_nombre, g.codigo_grupo,
+		       bh.dia_semana, bh.slot_inicio, bh.slot_fin
+		FROM bloque_horario bh
+		JOIN grupo g ON g.id_grupo = bh.id_grupo
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		JOIN escuela_profesional e ON e.id_escuela = ca.id_escuela
+		JOIN horario h ON h.id_horario = bh.id_horario
+		WHERE g.id_docente = $1 AND ca.id_periodo = $2 AND h.id_periodo = $2
+		ORDER BY bh.dia_semana, bh.slot_inicio
+	`, docenteID, idPeriodo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var bloques []BloqueAsignado
+	for rows.Next() {
+		var b BloqueAsignado
+		if err := rows.Scan(&b.ID, &b.IDHorario, &b.IDGrupo, &b.IDCarga, &b.IDAula,
+			&b.DocenteID, &b.EscuelaID, &b.EscuelaNombre,
+			&b.CursoCodigo, &b.CursoNombre, &b.GrupoCodigo,
+			&b.DiaSemana, &b.SlotInicio, &b.SlotFin); err != nil {
+			return nil, err
+		}
+		bloques = append(bloques, b)
+	}
+	return bloques, rows.Err()
+}
+
+type ConflictoHorario struct {
+	Tipo            string `json:"tipo"`
+	DiaSemana       int    `json:"dia_semana"`
+	SlotInicio      int    `json:"slot_inicio"`
+	SlotFin         int    `json:"slot_fin"`
+	Escuela         string `json:"escuela"`
+	CursoCodigo     string `json:"curso_codigo"`
+	CursoNombre     string `json:"curso_nombre"`
+	GrupoCodigo     string `json:"grupo_codigo"`
+}
+
+func (r *Repository) VerificarConflictoDocente(ctx context.Context, docenteID int, diaSemana int, slotInicio int, slotFin int, idPeriodo int) (*ConflictoHorario, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT e.nombre, c.codigo, c.nombre, g.codigo_grupo,
+		       bh.dia_semana, bh.slot_inicio, bh.slot_fin
+		FROM bloque_horario bh
+		JOIN grupo g ON g.id_grupo = bh.id_grupo
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		JOIN escuela_profesional e ON e.id_escuela = ca.id_escuela
+		JOIN horario h ON h.id_horario = bh.id_horario
+		WHERE g.id_docente = $1 AND ca.id_periodo = $2 AND h.id_periodo = $2
+		  AND bh.dia_semana = $3
+		  AND bh.slot_inicio < $5 AND bh.slot_fin > $4
+	`, docenteID, idPeriodo, diaSemana, slotInicio, slotFin)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		var b ConflictoHorario
+		if err := rows.Scan(&b.Escuela, &b.CursoCodigo, &b.CursoNombre, &b.GrupoCodigo,
+			&b.DiaSemana, &b.SlotInicio, &b.SlotFin); err != nil {
+			return nil, err
+		}
+		b.Tipo = "CRUCE_HORARIO"
+		return &b, nil
+	}
+	return nil, nil
+}
+
+func formatSlotRange(inicio, fin int) string {
+	horas := map[int]string{
+		1:  "07:00", 2:  "08:00", 3:  "09:00", 4:  "10:00", 5:  "11:00", 6:  "12:00",
+		7:  "13:00", 8:  "14:00", 9:  "15:00", 10: "16:00", 11: "17:00", 12: "18:00",
+		13: "19:00", 14: "20:00",
+	}
+	start := horas[inicio]
+	end := horas[fin]
+	if start == "" {
+		start = "??:??"
+	}
+	if end == "" {
+		end = "??:??"
+	}
+	return start + "-" + end
+}

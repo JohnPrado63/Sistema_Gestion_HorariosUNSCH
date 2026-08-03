@@ -64,11 +64,19 @@ export const api = {
   
   horarios: {
     list: () => api.get('/horarios'),
-    get: (id) => api.get(`/horarios/${id}`)
+    get: (id) => api.get(`/horarios/${id}`),
+    create: (data) => api.post('/horarios', data),
+    bloques: (id) => api.get(`/horarios/${id}/bloques`)
   },
-  
+
   bloques: {
-    list: () => api.get('/bloques')
+    list: () => api.get('/bloques'),
+    create: (data) => api.post('/bloques', data),
+    verificar: (data) => api.post('/bloques/verificar', data)
+  },
+
+  gruposHorario: {
+    list: (escuela, periodo) => api.get(`/grupos-horario?escuela=${escuela}&periodo=${periodo}`)
   },
   
   cargas: {

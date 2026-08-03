@@ -59,7 +59,13 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		api.GET("/cargas-academicas", cat.CargasAcademicas)
 		api.GET("/grupos", cat.Grupos)
 		api.GET("/horarios", cat.Horarios)
+		api.POST("/horarios", cat.CreateHorario)
+		api.GET("/horarios/:id", cat.GetHorario)
+		api.GET("/horarios/:id/bloques", cat.GetBloquesByHorario)
+		api.GET("/grupos-horario", cat.GetGruposParaHorario)
 		api.GET("/bloques", cat.Bloques)
+		api.POST("/bloques", cat.CreateBloque)
+		api.POST("/bloques/verificar", cat.VerificarConflictoBloque)
 		api.GET("/bitacora", cat.Bitacora)
 
 		cargaRoutes := api.Group("/carga-academica")
@@ -72,6 +78,12 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 			cargaRoutes.POST("/:id/aprobar", ca.ApproveCarga)
 			cargaRoutes.GET("/resumen-docentes", ca.GetResumenDocentes)
 			cargaRoutes.GET("/docente/:idDocente/horas", ca.GetHorasDocente)
+		}
+
+		disponibilidadRoutes := api.Group("/disponibilidad")
+		{
+			disponibilidadRoutes.GET("/docente/:idDocente", ca.GetDisponibilidadDocente)
+			disponibilidadRoutes.POST("/verificar", ca.VerificarDisponibilidad)
 		}
 
 		validaciones := api.Group("/validaciones")

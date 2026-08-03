@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -108,6 +109,127 @@ func (h Handler) Bloques(c *gin.Context) {
 func (h Handler) Bitacora(c *gin.Context) {
 	data, err := h.repo.ListBitacoraAuditoria(c.Request.Context())
 	respond(c, data, err)
+}
+
+func (h Handler) CreateHorario(c *gin.Context) {
+	var input CreateHorarioInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	hdr, err := h.repo.CreateHorario(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, hdr)
+}
+
+func (h Handler) GetHorario(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	data, err := h.repo.ListHorarios(c.Request.Context())
+	if err != nil {
+		respond(c, data, err)
+		return
+	}
+
+	for _, h := range data {
+		if h.ID == id {
+			c.JSON(http.StatusOK, h)
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"error": "Horario no encontrado"})
+}
+
+func (h Handler) GetBloquesByHorario(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	data, err := h.repo.GetBloquesByHorario(c.Request.Context(), id)
+	respond(c, data, err)
+}
+
+func (h Handler) GetGruposParaHorario(c *gin.Context) {
+	escuelaStr := c.Query("escuela")
+	periodoStr := c.Query("periodo")
+
+	escuela, err := strconv.Atoi(escuelaStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de escuela inválido"})
+		return
+	}
+
+	periodo, err := strconv.Atoi(periodoStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID de periodo inválido"})
+		return
+	}
+
+	data, err := h.repo.GetGruposParaHorario(c.Request.Context(), escuela, periodo)
+	respond(c, data, err)
+}
+
+func (h Handler) CreateBloque(c *gin.Context) {
+	var input CreateBloqueInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	conflictos, err := h.repo.VerificarConflictoBloque(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(conflictos) > 0 {
+		c.JSON(http.StatusConflict, gin.H{
+			"error":      "Hay conflictos con el bloque propuesto",
+			"conflictos": conflictos,
+		})
+		return
+	}
+
+	bloque, err := h.repo.CreateBloque(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, bloque)
+}
+
+func (h Handler) VerificarConflictoBloque(c *gin.Context) {
+	var input CreateBloqueInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	conflictos, err := h.repo.VerificarConflictoBloque(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"tiene_conflicto": len(conflictos) > 0,
+		"conflictos":       conflictos,
+	})
 }
 
 func respond[T any](c *gin.Context, data T, err error) {

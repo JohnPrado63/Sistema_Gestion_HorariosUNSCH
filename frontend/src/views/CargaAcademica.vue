@@ -228,6 +228,18 @@
             </small>
           </div>
 
+          <div v-if="docenteBloques.length > 0" class="form-group">
+            <label class="form-label">Horarios Asignados al Docente</label>
+            <div class="bloques-info">
+              <div v-for="bloque in docenteBloques" :key="bloque.id_bloque" class="bloque-item">
+                <span class="bloque-curso">{{ bloque.curso_codigo }}</span>
+                <span class="bloque-escuela">{{ bloque.escuela_nombre }}</span>
+                <span class="bloque-dia">{{ formatDia(bloque.dia_semana) }}</span>
+                <span class="bloque-hora">{{ formatSlot(bloque.slot_inicio) }}-{{ formatSlot(bloque.slot_fin) }}</span>
+              </div>
+            </div>
+          </div>
+
           <div class="form-group">
             <label class="form-label">
               <input v-model="grupoForm.es_nueva_necesidad" type="checkbox">
@@ -272,6 +284,7 @@ const saving = ref(false)
 const selectedCarga = ref(null)
 const editingGrupo = ref(null)
 const docenteHoras = ref(null)
+const docenteBloques = ref([])
 
 const grupoForm = ref({
   codigo_grupo: '',
@@ -402,17 +415,39 @@ function closeModal() {
   showModal.value = false
   selectedCarga.value = null
   editingGrupo.value = null
+  docenteBloques.value = []
+}
+
+function formatDia(dia) {
+  const dias = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+  return dias[dia] || `Día ${dia}`
+}
+
+function formatSlot(slot) {
+  const horas = {
+    1: '07:00', 2: '08:00', 3: '09:00', 4: '10:00', 5: '11:00', 6: '12:00',
+    7: '13:00', 8: '14:00', 9: '15:00', 10: '16:00', 11: '17:00', 12: '18:00',
+    13: '19:00', 14: '20:00'
+  }
+  return horas[slot] || `${slot}:00`
 }
 
 watch(() => grupoForm.value.id_docente, async (newVal) => {
   if (newVal) {
     try {
-      docenteHoras.value = await api.get(`/carga-academica/docente/${newVal}/horas?periodo=${selectedPeriodo.value}`)
+      const [horas, bloques] = await Promise.all([
+        api.get(`/carga-academica/docente/${newVal}/horas?periodo=${selectedPeriodo.value}`),
+        api.get(`/disponibilidad/docente/${newVal}?periodo=${selectedPeriodo.value}`)
+      ])
+      docenteHoras.value = horas
+      docenteBloques.value = bloques.bloques_asignados || []
     } catch {
       docenteHoras.value = null
+      docenteBloques.value = []
     }
   } else {
     docenteHoras.value = null
+    docenteBloques.value = []
   }
 })
 
@@ -765,5 +800,59 @@ onMounted(() => {
 
 .text-danger {
   color: #ef4444 !important;
+}
+
+.bloques-info {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.bloque-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+}
+
+.bloque-item:last-child {
+  margin-bottom: 0;
+}
+
+.bloque-curso {
+  background: #1e40af;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.bloque-escuela {
+  flex: 1;
+  color: #64748b;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bloque-dia {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.bloque-hora {
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #475569;
 }
 </style>

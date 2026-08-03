@@ -19,7 +19,10 @@ Sistema de Gestión de Horarios y Carga Académica de la Universidad Nacional de
    ```
    DB_PASSWORD=tu_contraseña_postgres
    REDIS_PASSWORD=tu_contraseña_redis
+   APP_PORT=8080
    ```
+
+**Nota**: El backend usa puerto `8080` y el frontend puerto `8081`. Asegúrate de que Docker tenga los puertos `5433` y `6379` disponibles.
 
 ## Ejecución
 
