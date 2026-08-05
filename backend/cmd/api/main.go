@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"unsch-horarios/backend/internal/auth"
 	"unsch-horarios/backend/internal/config"
 	"unsch-horarios/backend/internal/database"
 	apphttp "unsch-horarios/backend/internal/http"
@@ -24,6 +25,12 @@ func main() {
 		log.Fatalf("database connection failed: %v", err)
 	}
 	defer db.Close()
+
+	err = auth.InitRedis(cfg.RedisAddr(), cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		log.Printf("redis init warning: %v", err)
+	}
+	defer auth.CloseRedis()
 
 	router := apphttp.NewRouter(db)
 

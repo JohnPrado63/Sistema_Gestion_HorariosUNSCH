@@ -36,21 +36,33 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 
 	r.POST("/api/v1/login", auth.LoginHandler(db))
 
-	cat := catalogHandler(db)
-	sch := scheduleHandler()
-	ca := cargaacademicaHandler(db)
+	authHandler := func() gin.HandlerFunc {
+		return auth.AuthMiddleware()
+	}
 
 	api := r.Group("/api/v1")
 	{
+		api.GET("/me", authHandler(), auth.MeHandler(db))
+
+		api.POST("/logout", authHandler(), auth.LogoutHandler())
+
+		usuariosHandler := func(roles ...string) gin.HandlerFunc {
+			return auth.RequireRole(roles...)
+		}
+
+		api.GET("/usuarios", authHandler(), usuariosHandler("ADMIN_TI"), auth.ListUsersHandler(db))
+		api.POST("/usuarios", authHandler(), usuariosHandler("ADMIN_TI"), auth.CreateUserHandler(db))
+		api.PUT("/usuarios/:id", authHandler(), usuariosHandler("ADMIN_TI"), auth.UpdateUserHandler(db))
+		api.DELETE("/usuarios/:id", authHandler(), usuariosHandler("ADMIN_TI"), auth.DeleteUserHandler(db))
+
+		cat := catalogHandler(db)
+		sch := scheduleHandler()
+		ca := cargaacademicaHandler(db)
+
 		api.GET("/facultades", cat.Facultades)
 		api.GET("/departamentos", cat.Departamentos)
 		api.GET("/escuelas", cat.Escuelas)
 		api.GET("/aulas", cat.Aulas)
-		api.GET("/usuarios", cat.Usuarios)
-		api.GET("/planes", cat.PlanesEstudio)
-		api.GET("/series", cat.Series)
-		api.GET("/cursos", cat.Cursos)
-		api.GET("/docentes", cat.Docentes)
 		api.GET("/periodos", cat.Periodos)
 		api.GET("/sesiones-departamento", cat.SesionesDepartamento)
 		api.GET("/locales", cat.Locales)
@@ -59,25 +71,29 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		api.GET("/cargas-academicas", cat.CargasAcademicas)
 		api.GET("/grupos", cat.Grupos)
 		api.GET("/horarios", cat.Horarios)
-		api.POST("/horarios", cat.CreateHorario)
+		api.GET("/cursos", cat.Cursos)
+		api.GET("/docentes", cat.Docentes)
+		api.POST("/horarios", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.CreateHorario)
 		api.GET("/horarios/:id", cat.GetHorario)
 		api.GET("/horarios/:id/bloques", cat.GetBloquesByHorario)
 		api.GET("/grupos-horario", cat.GetGruposParaHorario)
 		api.GET("/bloques", cat.Bloques)
-		api.POST("/bloques", cat.CreateBloque)
-		api.POST("/bloques/verificar", cat.VerificarConflictoBloque)
-		api.GET("/bitacora", cat.Bitacora)
+		api.POST("/bloques", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.CreateBloque)
+		api.POST("/bloques/verificar", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.VerificarConflictoBloque)
+		api.GET("/bitacora", authHandler(), usuariosHandler("ADMIN_TI", "DGA"), cat.Bitacora)
 
 		cargaRoutes := api.Group("/carga-academica")
+		cargaAuth := authHandler()
+		cargaRoles := usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA")
 		{
-			cargaRoutes.GET("", ca.ListCargas)
-			cargaRoutes.GET("/:id", ca.GetCarga)
-			cargaRoutes.POST("", ca.CreateCarga)
-			cargaRoutes.POST("/:id/grupos", ca.CreateGrupo)
-			cargaRoutes.PUT("/grupos/:idGrupo", ca.UpdateGrupo)
-			cargaRoutes.POST("/:id/aprobar", ca.ApproveCarga)
-			cargaRoutes.GET("/resumen-docentes", ca.GetResumenDocentes)
-			cargaRoutes.GET("/docente/:idDocente/horas", ca.GetHorasDocente)
+			cargaRoutes.GET("", cargaAuth, cargaRoles, ca.ListCargas)
+			cargaRoutes.GET("/:id", cargaAuth, cargaRoles, ca.GetCarga)
+			cargaRoutes.POST("", cargaAuth, cargaRoles, ca.CreateCarga)
+			cargaRoutes.POST("/:id/grupos", cargaAuth, cargaRoles, ca.CreateGrupo)
+			cargaRoutes.PUT("/grupos/:idGrupo", cargaAuth, cargaRoles, ca.UpdateGrupo)
+			cargaRoutes.POST("/:id/aprobar", cargaAuth, cargaRoles, ca.ApproveCarga)
+			cargaRoutes.GET("/resumen-docentes", cargaAuth, cargaRoles, ca.GetResumenDocentes)
+			cargaRoutes.GET("/docente/:idDocente/horas", cargaAuth, cargaRoles, ca.GetHorasDocente)
 		}
 
 		disponibilidadRoutes := api.Group("/disponibilidad")
@@ -87,11 +103,13 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		}
 
 		validaciones := api.Group("/validaciones")
+		validAuth := authHandler()
+		validRoles := usuariosHandler("ADMIN_TI", "DGA")
 		{
 			validaciones.GET("/escenarios", validationHandler().Scenarios)
-			validaciones.POST("/placement", auth.AuthMiddleware(), auth.RequireRole("ADMIN_TI", "DIRECTOR_ESCUELA", "JEFE_DEPTO", "DGA"), sch.ValidatePlacement)
-			validaciones.POST("/audit", auth.AuthMiddleware(), auth.RequireRole("ADMIN_TI", "DIRECTOR_ESCUELA", "JEFE_DEPTO", "DGA"), sch.ValidateAuditChange)
-			validaciones.POST("/carga", auth.AuthMiddleware(), auth.RequireRole("ADMIN_TI", "DIRECTOR_ESCUELA", "JEFE_DEPTO", "DGA"), sch.ValidateTeachingLoad)
+			validaciones.POST("/placement", validAuth, validRoles, sch.ValidatePlacement)
+			validaciones.POST("/audit", validAuth, validRoles, sch.ValidateAuditChange)
+			validaciones.POST("/carga", validAuth, validRoles, sch.ValidateTeachingLoad)
 		}
 	}
 
@@ -238,7 +256,9 @@ func index(c *gin.Context) {
 		"endpoints": []string{
 			"POST /api/v1/login",
 			"GET /health",
-			"GET /api/v1/*catalogs",
+			"GET /api/v1/me",
+			"POST /api/v1/logout",
+			"GET /api/v1/usuarios",
 		},
 	})
 }

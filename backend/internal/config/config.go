@@ -17,6 +17,10 @@ type Config struct {
 	DBUser string
 	DBPass string
 	DBSSL  string
+	RedisHost     string
+	RedisPort     string
+	RedisPassword string
+	RedisDB       int
 }
 
 func Load() Config {
@@ -29,6 +33,10 @@ func Load() Config {
 		DBUser: env("DB_USER", "postgres"),
 		DBPass: os.Getenv("DB_PASSWORD"),
 		DBSSL:  env("DB_SSLMODE", "disable"),
+		RedisHost:     env("REDIS_HOST", "localhost"),
+		RedisPort:     env("REDIS_PORT", "6379"),
+		RedisPassword: os.Getenv("REDIS_PASSWORD"),
+		RedisDB:       0,
 	}
 }
 
@@ -78,6 +86,10 @@ func (c Config) DatabaseURL() string {
 	)
 }
 
+func (c Config) RedisAddr() string {
+	return fmt.Sprintf("%s:%s", c.RedisHost, c.RedisPort)
+}
+
 func env(key, fallback string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -85,5 +97,3 @@ func env(key, fallback string) string {
 	}
 	return value
 }
-
-
