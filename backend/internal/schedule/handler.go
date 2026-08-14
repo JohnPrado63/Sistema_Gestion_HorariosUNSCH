@@ -25,7 +25,7 @@ func (h Handler) ValidatePlacement(c *gin.Context) {
 	if findings == nil {
 		findings = []validation.Finding{}
 	}
-	c.JSON(http.StatusOK, findings)
+	c.JSON(http.StatusOK, gin.H{"findings": findings})
 }
 
 func (h Handler) ValidateAuditChange(c *gin.Context) {

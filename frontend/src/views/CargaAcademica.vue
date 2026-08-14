@@ -105,6 +105,13 @@
                 </svg>
                 + Grupo
               </button>
+              <button v-if="carga.estado === 'BORRADOR'" class="btn btn-primary btn-sm" @click="openApproveModal(carga)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 11 12 14 22 4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+                Aprobar
+              </button>
             </div>
 
             <div class="carga-curso">
@@ -327,6 +334,76 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Aprobar Carga (DGA) -->
+    <div v-if="showApproveModal" class="modal-overlay" @click.self="showApproveModal = false">
+      <div class="modal modal-md">
+        <div class="modal-header">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 11 12 14 22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            Aprobar Carga Académica
+          </h2>
+          <button class="btn btn-icon" @click="showApproveModal = false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div v-if="selectedCarga" class="selected-curso">
+            <span class="curso-codigo">{{ selectedCarga.curso?.codigo }}</span>
+            <span>{{ selectedCarga.curso?.nombre }}</span>
+          </div>
+
+          <div v-if="approveWarnings.length > 0" class="warnings-box">
+            <div class="warnings-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>Advertencias Detectadas</span>
+            </div>
+            <div v-for="(w, i) in approveWarnings" :key="i" class="warning-item" :class="w.severity">
+              <span class="warning-rule">{{ w.rule }}</span>
+              <span class="warning-message">{{ w.message }}</span>
+            </div>
+          </div>
+
+          <div v-if="approveWarnings.length === 0" class="success-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>Sin advertencias. La carga puede ser aprobada.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Justificación (requerida para oficiales)</label>
+            <textarea v-model="approveForm.justificacion" class="form-input" rows="3" placeholder="Ingrese justificación del approval..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showApproveModal = false">Cancelar</button>
+          <button v-if="approveWarnings.length > 0" class="btn btn-warning" @click="confirmApproveWithWarnings" :disabled="approveLoading">
+            <svg v-if="approveLoading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin">
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            Confirmar con DGA
+          </button>
+          <button v-else class="btn btn-success" @click="approveCarga" :disabled="approveLoading">
+            <svg v-if="approveLoading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin">
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            Aprobar Carga
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -352,6 +429,14 @@ const selectedCarga = ref(null)
 const editingGrupo = ref(null)
 const docenteHoras = ref(null)
 const docenteBloques = ref([])
+
+const showApproveModal = ref(false)
+const approveWarnings = ref([])
+const approveLoading = ref(false)
+const approveForm = ref({
+  id_usuario: 0,
+  justificacion: ''
+})
 
 const grupoForm = ref({
   codigo_grupo: '',
@@ -524,6 +609,81 @@ function refresh() {
     loadCargas()
   } else {
     loadResumenDocentes()
+  }
+}
+
+async function openApproveModal(carga) {
+  selectedCarga.value = carga
+  approveWarnings.value = []
+  approveForm.value = { id_usuario: 0, justificacion: '' }
+  showApproveModal.value = true
+}
+
+async function approveCarga() {
+  if (!selectedCarga.value) return
+
+  approveLoading.value = true
+  approveWarnings.value = []
+
+  try {
+    const warnings = []
+    for (const grupo of selectedCarga.value.grupos || []) {
+      if (grupo.id_docente) {
+        const result = await api.validaciones.carga({
+          teacher_id: grupo.id_docente,
+          weekly_hours: calculateHorasDocente(selectedCarga.value, grupo.id_docente),
+          confirmed: false
+        })
+        if (result.findings && result.findings.length > 0) {
+          warnings.push(...result.findings.map(f => ({
+            docente: grupo.docente,
+            ...f
+          })))
+        }
+      }
+    }
+
+    if (warnings.length > 0) {
+      approveWarnings.value = warnings
+      return
+    }
+
+    await api.cargas.approve(selectedCarga.value.id_carga, approveForm.value)
+    showApproveModal.value = false
+    loadCargas()
+  } catch (e) {
+    approveWarnings.value = [{
+      rule: 'ERROR',
+      severity: 'blocker',
+      message: e.message
+    }]
+  } finally {
+    approveLoading.value = false
+  }
+}
+
+function calculateHorasDocente(carga, idDocente) {
+  const gruposDocente = carga.grupos?.filter(g => g.id_docente === idDocente) || []
+  if (gruposDocente.length === 0) return 0
+  const horasTeoria = carga.curso?.horas_teoria || 0
+  const horasPractica = carga.curso?.horas_practica || 0
+  return gruposDocente.length * (horasTeoria + horasPractica)
+}
+
+async function confirmApproveWithWarnings() {
+  approveLoading.value = true
+  try {
+    await api.cargas.approve(selectedCarga.value.id_carga, approveForm.value)
+    showApproveModal.value = false
+    loadCargas()
+  } catch (e) {
+    approveWarnings.value = [{
+      rule: 'ERROR',
+      severity: 'blocker',
+      message: e.message
+    }]
+  } finally {
+    approveLoading.value = false
   }
 }
 
@@ -1358,5 +1518,86 @@ onMounted(() => {
   .form-grid-2 {
     grid-template-columns: 1fr;
   }
+}
+
+.warnings-box {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.warnings-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #b45309;
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.warning-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-left: 4px solid #f59e0b;
+}
+
+.warning-item.blocker {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.warning-item:last-child {
+  margin-bottom: 0;
+}
+
+.warning-rule {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.warning-message {
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.success-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border: 2px solid #22c55e;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  color: #15803d;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-warning:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 80px;
 }
 </style>

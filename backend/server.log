@@ -1,7 +1,0 @@
-﻿go : 2026/07/29 13:23:29 api listening on http://localhost:8081
-En línea: 1 Carácter: 151
-+ ... unctional-requirements-review\backend'; go run ./cmd/api 2>&1 | Out-F ...
-+                                             ~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (2026/07/29 13:2.../localhost:8081:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 

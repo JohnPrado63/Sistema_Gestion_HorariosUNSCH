@@ -149,6 +149,41 @@ func (m *mockRepository) ListBitacoraAuditoria(ctx context.Context) ([]BitacoraA
 	return m.bitacora, nil
 }
 
+func (m *mockRepository) CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return &Horario{ID: 1, IDEscuela: input.IDEscuela, IDPeriodo: input.IDPeriodo, Estado: "BORRADOR"}, nil
+}
+
+func (m *mockRepository) VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
+}
+
+func (m *mockRepository) CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return &BloqueHorario{ID: 1, IDHorario: input.IDHorario, IDGrupo: input.IDGrupo, IDAula: input.IDAula, DiaSemana: input.DiaSemana, SlotInicio: input.SlotInicio, SlotFin: input.SlotFin}, nil
+}
+
+func (m *mockRepository) GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
+}
+
+func (m *mockRepository) GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return nil, nil
+}
+
 func testContext() (*gin.Context, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()

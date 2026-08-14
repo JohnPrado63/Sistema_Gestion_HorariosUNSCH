@@ -197,4 +197,7 @@ type BloqueContexto struct {
 	NombreEscuela    string `json:"nombre_escuela"`
 	CodigoCurso      string `json:"codigo_curso"`
 	NombreCurso      string `json:"nombre_curso"`
+	HorasTeoria      int    `json:"horas_teoria"`
+	HorasPractica    int    `json:"horas_practica"`
+	IDCurso          int    `json:"id_curso"`
 }

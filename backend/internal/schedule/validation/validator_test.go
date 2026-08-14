@@ -147,6 +147,72 @@ func TestValidatePlacementAcceptsCleanPlacement(t *testing.T) {
 	}
 }
 
+func TestValidatePlacementBlocksTeoriaHoursExceeded(t *testing.T) {
+	proposed := block(1, 10, 1, 1, 1, 100, 1, 3, 6)
+	proposed.ComponentType = "TEORIA"
+	proposed.CourseHoursTeoria = 4
+
+	findings := ValidatePlacement(PlacementInput{
+		Proposed: proposed,
+		Existing: []Block{
+			blockWithTeoriaHours(2, 20, 1, 1, 1, 100, 1, 6, 8, 2),
+		},
+		State: StateDraft,
+	})
+
+	assertFinding(t, findings, RuleCourseHoursExceededTeoria, SeverityBlocker)
+}
+
+func TestValidatePlacementBlocksPracticaHoursExceeded(t *testing.T) {
+	proposed := block(1, 10, 1, 1, 1, 100, 1, 3, 4)
+	proposed.ComponentType = "PRACTICA"
+	proposed.CourseHoursPractica = 2
+
+	findings := ValidatePlacement(PlacementInput{
+		Proposed: proposed,
+		Existing: []Block{
+			blockWithPracticaHours(2, 20, 1, 1, 1, 100, 1, 5, 7, 2),
+		},
+		State: StateDraft,
+	})
+
+	assertFinding(t, findings, RuleCourseHoursExceededPractica, SeverityBlocker)
+}
+
+func TestValidatePlacementAllowsWithinTeoriaHours(t *testing.T) {
+	proposed := block(1, 10, 1, 1, 1, 100, 1, 3, 5)
+	proposed.ComponentType = "TEORIA"
+	proposed.CourseHoursTeoria = 4
+
+	findings := ValidatePlacement(PlacementInput{
+		Proposed: proposed,
+		Existing: []Block{
+			blockWithTeoriaHours(2, 20, 1, 1, 1, 100, 1, 6, 7, 1),
+		},
+		State: StateDraft,
+	})
+
+	if len(findings) != 0 {
+		t.Fatalf("expected no findings, got %+v", findings)
+	}
+}
+
+func TestValidatePlacementAccumulatesTeoriaHoursAcrossDays(t *testing.T) {
+	proposed := block(1, 10, 1, 1, 1, 100, 1, 3, 6)
+	proposed.ComponentType = "TEORIA"
+	proposed.CourseHoursTeoria = 4
+
+	findings := ValidatePlacement(PlacementInput{
+		Proposed: proposed,
+		Existing: []Block{
+			blockWithTeoriaHours(2, 20, 1, 1, 1, 100, 2, 6, 8, 2),
+		},
+		State: StateDraft,
+	})
+
+	assertFinding(t, findings, RuleCourseHoursExceededTeoria, SeverityBlocker)
+}
+
 func block(id int, teacherID int, schoolID int, groupID int, roomID int, seriesID int, day int, start int, end int) Block {
 	return Block{
 		ID:        id,
@@ -176,6 +242,20 @@ func blockWithPavilion(id int, teacherID int, schoolID int, pavilionID int, day 
 func blockWithSeriesCourse(id int, teacherID int, schoolID int, seriesID int, courseID int, day int, start int, end int) Block {
 	item := block(id, teacherID, schoolID, id, id, seriesID, day, start, end)
 	item.CourseID = courseID
+	return item
+}
+
+func blockWithTeoriaHours(id int, teacherID int, schoolID int, groupID int, roomID int, seriesID int, day int, start int, end int, courseHoursTeoria int) Block {
+	item := block(id, teacherID, schoolID, groupID, roomID, seriesID, day, start, end)
+	item.ComponentType = "TEORIA"
+	item.CourseHoursTeoria = courseHoursTeoria
+	return item
+}
+
+func blockWithPracticaHours(id int, teacherID int, schoolID int, groupID int, roomID int, seriesID int, day int, start int, end int, courseHoursPractica int) Block {
+	item := block(id, teacherID, schoolID, groupID, roomID, seriesID, day, start, end)
+	item.ComponentType = "PRACTICA"
+	item.CourseHoursPractica = courseHoursPractica
 	return item
 }
 

@@ -11,16 +11,18 @@ const (
 type RuleID string
 
 const (
-	RuleTeacherConflict       RuleID = "RV-01"
-	RuleRoomConflict          RuleID = "RV-02"
-	RuleDepartmentSession     RuleID = "RV-03"
-	RuleNoTransferTime        RuleID = "RV-04a"
-	RuleInsufficientTransfer  RuleID = "RV-04b"
-	RuleTeachingLoadLimit     RuleID = "RV-05"
-	RuleSameSeriesConflict    RuleID = "RV-06"
-	RuleSharedRoomReservation RuleID = "RV-07"
-	RuleAuditJustification    RuleID = "RV-08"
-	RuleCapacityReadjustment  RuleID = "RV-09"
+	RuleTeacherConflict        RuleID = "RV-01"
+	RuleRoomConflict           RuleID = "RV-02"
+	RuleDepartmentSession      RuleID = "RV-03"
+	RuleNoTransferTime         RuleID = "RV-04a"
+	RuleInsufficientTransfer   RuleID = "RV-04b"
+	RuleTeachingLoadLimit      RuleID = "RV-05"
+	RuleSameSeriesConflict     RuleID = "RV-06"
+	RuleSharedRoomReservation  RuleID = "RV-07"
+	RuleAuditJustification     RuleID = "RV-08"
+	RuleCapacityReadjustment   RuleID = "RV-09"
+	RuleCourseHoursExceededTeoria RuleID = "RV-10a"
+	RuleCourseHoursExceededPractica RuleID = "RV-10b"
 )
 
 type Finding struct {
@@ -44,22 +46,25 @@ const (
 )
 
 type Block struct {
-	ID           int  `json:"id"`
-	ScheduleID   int  `json:"schedule_id"`
-	SchoolID     int  `json:"school_id"`
-	GroupID      int  `json:"group_id"`
-	CourseID     int  `json:"course_id"`
-	SeriesID     int  `json:"series_id"`
-	TeacherID    int  `json:"teacher_id"`
-	DepartmentID int  `json:"department_id"`
-	RoomID       int  `json:"room_id"`
-	RoomShared   bool `json:"room_shared"`
-	PavilionID   int  `json:"pavilion_id"`
-	Day          int  `json:"day"`
-	StartSlot    int  `json:"start_slot"`
-	EndSlot      int  `json:"end_slot"`
-	Enrollment   int  `json:"enrollment"`
-	RoomCapacity int  `json:"room_capacity"`
+	ID             int    `json:"id"`
+	ScheduleID     int    `json:"schedule_id"`
+	SchoolID       int    `json:"school_id"`
+	GroupID        int    `json:"group_id"`
+	CourseID       int    `json:"course_id"`
+	SeriesID       int    `json:"series_id"`
+	TeacherID      int    `json:"teacher_id"`
+	DepartmentID   int    `json:"department_id"`
+	RoomID         int    `json:"room_id"`
+	RoomShared     bool   `json:"room_shared"`
+	PavilionID    int    `json:"pavilion_id"`
+	Day           int    `json:"day"`
+	StartSlot     int    `json:"start_slot"`
+	EndSlot       int    `json:"end_slot"`
+	Enrollment    int    `json:"enrollment"`
+	RoomCapacity  int    `json:"room_capacity"`
+	ComponentType string `json:"component_type"`
+	CourseHoursTeoria   int `json:"course_hours_teoria"`
+	CourseHoursPractica  int `json:"course_hours_practica"`
 }
 
 type DepartmentSession struct {
