@@ -533,6 +533,7 @@ function limpiar() {
   font-size: 1.5rem;
   font-weight: 700;
   background: linear-gradient(135deg, #f093fb, #f5576c);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

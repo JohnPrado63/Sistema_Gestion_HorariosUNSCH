@@ -177,7 +177,7 @@ func (m *mockRepository) GetBloquesByHorario(ctx context.Context, idHorario int)
 	return nil, nil
 }
 
-func (m *mockRepository) GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error) {
+func (m *mockRepository) GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int, idSerie *int, semestre *string) ([]GrupoInfo, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

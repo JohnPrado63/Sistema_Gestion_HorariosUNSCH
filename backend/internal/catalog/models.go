@@ -127,6 +127,8 @@ type Horario struct {
 	ID                 int       `json:"id_horario"`
 	IDEscuela          int       `json:"id_escuela"`
 	IDPeriodo          int       `json:"id_periodo"`
+	IDSerie            *int      `json:"id_serie"`
+	Semestre           *string   `json:"semestre"`
 	Estado             string    `json:"estado"`
 	VersionReajuste    int       `json:"version_reajuste"`
 	FechaActualizacion time.Time `json:"fecha_actualizacion"`
@@ -154,8 +156,10 @@ type BitacoraAuditoria struct {
 }
 
 type CreateHorarioInput struct {
-	IDEscuela  int `json:"id_escuela" binding:"required"`
-	IDPeriodo  int `json:"id_periodo" binding:"required"`
+	IDEscuela  int     `json:"id_escuela" binding:"required"`
+	IDPeriodo  int     `json:"id_periodo" binding:"required"`
+	IDSerie    *int    `json:"id_serie"`
+	Semestre   *string `json:"semestre"`
 }
 
 type CreateBloqueInput struct {

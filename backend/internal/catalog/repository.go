@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -27,11 +28,12 @@ type RepositoryInterface interface {
 	ListBloquesHorario(ctx context.Context) ([]BloqueHorario, error)
 	ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAuditoria, error)
 	CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error)
+	DeleteHorario(ctx context.Context, id int) error
 	VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error)
 	CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error)
 	DeleteBloque(ctx context.Context, id int) error
 	GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error)
-	GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error)
+	GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int, idSerie *int, semestre *string) ([]GrupoInfo, error)
 }
 
 type Repository struct {
@@ -350,7 +352,7 @@ func (r Repository) ListGrupos(ctx context.Context) ([]Grupo, error) {
 }
 
 func (r Repository) ListHorarios(ctx context.Context) ([]Horario, error) {
-	rows, err := r.db.Query(ctx, `SELECT id_horario, id_escuela, id_periodo, estado::text, version_reajuste, fecha_actualizacion FROM horario ORDER BY id_escuela, id_periodo`)
+	rows, err := r.db.Query(ctx, `SELECT id_horario, id_escuela, id_periodo, id_serie, semestre, estado::text, version_reajuste, fecha_actualizacion FROM horario ORDER BY id_escuela, id_periodo`)
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +361,7 @@ func (r Repository) ListHorarios(ctx context.Context) ([]Horario, error) {
 	items := make([]Horario, 0)
 	for rows.Next() {
 		var item Horario
-		if err := rows.Scan(&item.ID, &item.IDEscuela, &item.IDPeriodo, &item.Estado, &item.VersionReajuste, &item.FechaActualizacion); err != nil {
+		if err := rows.Scan(&item.ID, &item.IDEscuela, &item.IDPeriodo, &item.IDSerie, &item.Semestre, &item.Estado, &item.VersionReajuste, &item.FechaActualizacion); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -409,24 +411,33 @@ func (r Repository) ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAudito
 func (r Repository) CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error) {
 	var idHorario int
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO horario (id_escuela, id_periodo, estado, version_reajuste)
-		VALUES ($1, $2, 'BORRADOR', 0)
-		ON CONFLICT (id_escuela, id_periodo) DO UPDATE SET id_escuela = EXCLUDED.id_escuela
+		INSERT INTO horario (id_escuela, id_periodo, id_serie, semestre, estado, version_reajuste)
+		VALUES ($1, $2, $3, $4, 'BORRADOR', 0)
+		ON CONFLICT (id_escuela, id_periodo, id_serie, semestre) DO UPDATE SET id_escuela = EXCLUDED.id_escuela
 		RETURNING id_horario
-	`, input.IDEscuela, input.IDPeriodo).Scan(&idHorario)
+	`, input.IDEscuela, input.IDPeriodo, input.IDSerie, input.Semestre).Scan(&idHorario)
 	if err != nil {
 		return nil, err
 	}
 
 	var h Horario
 	err = r.db.QueryRow(ctx, `
-		SELECT id_horario, id_escuela, id_periodo, estado::text, version_reajuste, fecha_actualizacion
+		SELECT id_horario, id_escuela, id_periodo, id_serie, semestre, estado::text, version_reajuste, fecha_actualizacion
 		FROM horario WHERE id_horario = $1
-	`, idHorario).Scan(&h.ID, &h.IDEscuela, &h.IDPeriodo, &h.Estado, &h.VersionReajuste, &h.FechaActualizacion)
+	`, idHorario).Scan(&h.ID, &h.IDEscuela, &h.IDPeriodo, &h.IDSerie, &h.Semestre, &h.Estado, &h.VersionReajuste, &h.FechaActualizacion)
 	if err != nil {
 		return nil, err
 	}
 	return &h, nil
+}
+
+func (r Repository) DeleteHorario(ctx context.Context, id int) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM bloque_horario WHERE id_horario = $1`, id)
+	if err != nil {
+		return err
+	}
+	_, err = r.db.Exec(ctx, `DELETE FROM horario WHERE id_horario = $1`, id)
+	return err
 }
 
 type ConflictoBloque struct {
@@ -555,8 +566,8 @@ func (r Repository) GetBloquesByHorario(ctx context.Context, idHorario int) ([]B
 	return items, rows.Err()
 }
 
-func (r Repository) GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error) {
-	rows, err := r.db.Query(ctx, `
+func (r Repository) GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int, idSerie *int, semestre *string) ([]GrupoInfo, error) {
+	query := `
 		SELECT g.id_grupo, g.id_carga, g.codigo_grupo, g.tipo_componente::text,
 		       g.id_docente, COALESCE(d.nombres || ' ' || d.apellidos, '') as docente_nombre,
 		       c.codigo, c.nombre, c.horas_teoria, c.horas_practica
@@ -565,8 +576,26 @@ func (r Repository) GetGruposParaHorario(ctx context.Context, idEscuela int, idP
 		JOIN curso c ON c.id_curso = ca.id_curso
 		LEFT JOIN docente d ON d.id_docente = g.id_docente
 		WHERE ca.id_escuela = $1 AND ca.id_periodo = $2 AND ca.estado = 'AUTORIZADO'
-		ORDER BY c.codigo, g.codigo_grupo
-	`, idEscuela, idPeriodo)
+	`
+	args := []interface{}{idEscuela, idPeriodo}
+	argIdx := 3
+
+	if idSerie != nil {
+		query += fmt.Sprintf(" AND c.id_serie = $%d", argIdx)
+		args = append(args, *idSerie)
+		argIdx++
+	}
+	if semestre != nil && *semestre != "" {
+		if *semestre == "I" {
+			query += " AND RIGHT(c.codigo, 1) ~ '[13579]'"
+		} else if *semestre == "II" {
+			query += " AND RIGHT(c.codigo, 1) ~ '[02468]'"
+		}
+	}
+
+	query += " ORDER BY c.codigo, g.codigo_grupo"
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

@@ -191,7 +191,7 @@ func slotsOverlap(a Block, b Block) bool {
 }
 
 func rangesOverlap(aStart, aEnd, bStart, bEnd int) bool {
-	return aStart <= bEnd && bStart <= aEnd
+	return aStart < bEnd && bStart < aEnd
 }
 
 func gapBetween(existing Block, proposed Block) (gapSlots int, fromPavilionID int, toPavilionID int, ok bool) {

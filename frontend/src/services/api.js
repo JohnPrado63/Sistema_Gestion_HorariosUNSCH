@@ -85,6 +85,10 @@ export const api = {
     get: (id) => api.get(`/cursos/${id}`)
   },
 
+  series: {
+    list: () => api.get('/series')
+  },
+
   periodos: {
     list: () => api.get('/periodos')
   },
@@ -97,6 +101,7 @@ export const api = {
     list: () => api.get('/horarios'),
     get: (id) => api.get(`/horarios/${id}`),
     create: (data) => api.post('/horarios', data),
+    delete: (id) => api.delete(`/horarios/${id}`),
     bloques: (id) => api.get(`/horarios/${id}/bloques`)
   },
 
@@ -108,7 +113,12 @@ export const api = {
   },
 
   gruposHorario: {
-    list: (escuela, periodo) => api.get(`/grupos-horario?escuela=${escuela}&periodo=${periodo}`)
+    list: (escuela, periodo, serie, semestre) => {
+      let url = `/grupos-horario?escuela=${escuela}&periodo=${periodo}`
+      if (serie) url += `&serie=${serie}`
+      if (semestre) url += `&semestre=${semestre}`
+      return api.get(url)
+    }
   },
 
   cargas: {

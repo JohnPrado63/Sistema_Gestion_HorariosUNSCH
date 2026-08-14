@@ -127,6 +127,23 @@ func (h Handler) CreateHorario(c *gin.Context) {
 	c.JSON(http.StatusCreated, hdr)
 }
 
+func (h Handler) DeleteHorario(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteHorario(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Horario eliminado"})
+}
+
 func (h Handler) GetHorario(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
@@ -166,6 +183,8 @@ func (h Handler) GetBloquesByHorario(c *gin.Context) {
 func (h Handler) GetGruposParaHorario(c *gin.Context) {
 	escuelaStr := c.Query("escuela")
 	periodoStr := c.Query("periodo")
+	serieStr := c.Query("serie")
+	semestre := c.Query("semestre")
 
 	escuela, err := strconv.Atoi(escuelaStr)
 	if err != nil {
@@ -179,7 +198,15 @@ func (h Handler) GetGruposParaHorario(c *gin.Context) {
 		return
 	}
 
-	data, err := h.repo.GetGruposParaHorario(c.Request.Context(), escuela, periodo)
+	var idSerie *int
+	if serieStr != "" {
+		val, err := strconv.Atoi(serieStr)
+		if err == nil {
+			idSerie = &val
+		}
+	}
+
+	data, err := h.repo.GetGruposParaHorario(c.Request.Context(), escuela, periodo, idSerie, &semestre)
 	respond(c, data, err)
 }
 

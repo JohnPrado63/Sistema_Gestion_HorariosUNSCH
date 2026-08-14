@@ -78,11 +78,19 @@
               </div>
               <div class="horario-info">
                 <h3>{{ getEscuelaNombre(h.id_escuela) }}</h3>
-                <p>{{ getPeriodoCodigo(h.id_periodo) }}</p>
+                <p>{{ getPeriodoCodigo(h.id_periodo) }} - {{ getSerieDescripcion(getSerieNumero(h.id_serie)) }} - Semestre {{ h.semestre }}</p>
               </div>
               <div class="horario-footer" @click.stop>
                 <span class="horario-bloques">{{ getBloquesCount(h.id_horario) }} bloques</span>
-                <button class="btn btn-primary btn-sm" @click.stop="openAgregarBloque(h, 1, 1)">+ Bloque</button>
+                <div class="horario-actions">
+                  <button class="btn btn-danger btn-sm" @click.stop="eliminarHorario(h)" title="Eliminar horario">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                  <button class="btn btn-primary btn-sm" @click.stop="openAgregarBloque(h, 1, 1)">+ Bloque</button>
+                </div>
               </div>
             </div>
           </div>
@@ -93,6 +101,7 @@
             <div class="grilla-header-left">
               <h2 class="card-title">Grilla Horaria</h2>
               <span class="escuela-badge">{{ getEscuelaNombre(selectedHorario.id_escuela) }}</span>
+              <span class="serie-badge">{{ getSerieDescripcion(getSerieNumero(selectedHorario.id_serie)) }} - Semestre {{ selectedHorario.semestre }}</span>
               <span class="estado-badge" :class="getEstadoClass(selectedHorario.estado)">{{ selectedHorario.estado }}</span>
             </div>
             <div class="grilla-header-right">
@@ -228,6 +237,23 @@
               </option>
             </select>
           </div>
+          <div class="form-group">
+            <label class="form-label">Serie</label>
+            <select v-model="horarioForm.id_serie" class="form-input">
+              <option value="">-- Seleccionar --</option>
+              <option v-for="s in series" :key="s.id_serie" :value="s.id_serie">
+                {{ s.numero_ciclo }} - {{ getSerieDescripcion(s.numero_ciclo) }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Semestre</label>
+            <select v-model="horarioForm.semestre" class="form-input">
+              <option value="">-- Seleccionar --</option>
+              <option value="I">Impar (I)</option>
+              <option value="II">Par (II)</option>
+            </select>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="showModalHorario = false">Cancelar</button>
@@ -284,7 +310,7 @@
             <span class="info-value">{{ diasSemana[bloqueForm.dia_semana - 1] }}</span>
             <span class="info-divider">|</span>
             <span class="info-label">Hora:</span>
-            <span class="info-value">{{ formatHora(bloqueForm.slot_inicio) }} - {{ formatHora(bloqueForm.slot_fin + 1) }}</span>
+            <span class="info-value">{{ formatHora(bloqueForm.slot_inicio) }} - {{ formatHora(bloqueForm.slot_fin) }}</span>
           </div>
 
           <div class="form-group">
@@ -373,6 +399,7 @@ const horarios = ref([])
 const bloquesRaw = ref([])
 const periodos = ref([])
 const escuelas = ref([])
+const series = ref([])
 const aulas = ref([])
 const gruposDisponibles = ref([])
 
@@ -388,7 +415,9 @@ const conflictoError = ref(null)
 
 const horarioForm = ref({
   id_escuela: '',
-  id_periodo: ''
+  id_periodo: '',
+  id_serie: '',
+  semestre: ''
 })
 
 const bloqueForm = ref({
@@ -408,25 +437,44 @@ const aulasDisponibles = computed(() => {
   return aulas.value.filter(a => a.id_aula === parseInt(filtroAula.value))
 })
 
+const serieAulaMap = {
+  100: 'H-202',
+  200: 'H-203',
+  300: 'H-205',
+  400: 'H-206',
+  500: 'H-208'
+}
+
+function getAulaSugerida(serieId) {
+  if (!serieId) return null
+  const serie = series.value.find(s => s.id_serie === serieId)
+  if (!serie) return null
+  const codigoAula = serieAulaMap[serie.numero_ciclo]
+  if (!codigoAula) return null
+  return aulas.value.find(a => a.codigo === codigoAula)
+}
+
 function getHoraFin(horaIdx) {
   const hora = 7 + horaIdx + 1
   return `${hora.toString().padStart(2, '0')}:00`
 }
 
 function formatHora(slot) {
-  const hora = 6 + slot
+  const hora = 7 + (slot - 1)
   return `${hora.toString().padStart(2, '0')}:00`
 }
 
 async function loadCatalogos() {
   try {
-    const [p, e, a] = await Promise.all([
+    const [p, e, s, a] = await Promise.all([
       api.periodos.list(),
       api.escuelas.list(),
+      api.series.list(),
       api.aulas.list()
     ])
     periodos.value = p
     escuelas.value = e
+    series.value = s
     aulas.value = a
 
     const activo = p.find(x => x.activo)
@@ -441,6 +489,8 @@ async function loadCatalogos() {
 async function loadHorarios() {
   if (!selectedPeriodo.value) {
     horarios.value = []
+    bloquesRaw.value = []
+    selectedHorario.value = null
     return
   }
 
@@ -452,6 +502,12 @@ async function loadHorarios() {
 
     if (selectedEscuela.value) {
       horarios.value = horarios.value.filter(x => x.id_escuela === selectedEscuela.value)
+    }
+
+    if (selectedHorario.value) {
+      loadBloquesHorario(selectedHorario.value.id_horario)
+    } else {
+      bloquesRaw.value = []
     }
   } catch (e) {
     error.value = e.message
@@ -468,9 +524,10 @@ function selectHorario(h) {
 async function loadBloquesHorario(idHorario) {
   try {
     const b = await api.horarios.bloques(idHorario)
-    bloquesRaw.value = b
+    bloquesRaw.value = b || []
   } catch (e) {
     console.error('Error loading bloques:', e)
+    bloquesRaw.value = []
   }
 }
 
@@ -484,12 +541,31 @@ function getPeriodoCodigo(id) {
   return p ? p.codigo : `Periodo ${id}`
 }
 
+function getSerieDescripcion(numeroCiclo) {
+  const map = {
+    100: 'Ciclos I-II',
+    200: 'Ciclos III-IV',
+    300: 'Ciclos V-VI',
+    400: 'Ciclos VII-VIII',
+    500: 'Ciclos IX-X'
+  }
+  return map[numeroCiclo] || `Ciclos ${numeroCiclo}`
+}
+
+function getSerieNumero(idSerie) {
+  if (!idSerie) return 0
+  const s = series.value.find(x => x.id_serie === idSerie)
+  return s ? s.numero_ciclo : 0
+}
+
 function getBloquesCount(idHorario) {
+  if (!bloquesRaw.value) return 0
   return bloquesRaw.value.filter(x => x.id_horario === idHorario).length
 }
 
 function getBloquesHorario() {
   if (!selectedHorario.value) return []
+  if (!bloquesRaw.value) return []
   let bloques = bloquesRaw.value.filter(x => x.id_horario === selectedHorario.value.id_horario)
   if (filtroAula.value) {
     bloques = bloques.filter(b => b.id_aula === parseInt(filtroAula.value))
@@ -578,43 +654,80 @@ function getEstadoClass(estado) {
 }
 
 function openCrearHorario() {
-  horarioForm.value = { id_escuela: selectedEscuela.value || '', id_periodo: selectedPeriodo.value }
+  horarioForm.value = {
+    id_escuela: selectedEscuela.value || '',
+    id_periodo: selectedPeriodo.value || '',
+    id_serie: '',
+    semestre: ''
+  }
   showModalHorario.value = true
 }
 
 async function crearHorario() {
-  if (!horarioForm.value.id_escuela || !horarioForm.value.id_periodo) {
-    alert('Selecciona escuela y periodo')
+  if (!horarioForm.value.id_escuela || !horarioForm.value.id_periodo || !horarioForm.value.id_serie || !horarioForm.value.semestre) {
+    alert('Selecciona escuela, periodo, serie y semestre')
     return
   }
 
+  const data = {
+    id_escuela: parseInt(horarioForm.value.id_escuela),
+    id_periodo: parseInt(horarioForm.value.id_periodo),
+    id_serie: parseInt(horarioForm.value.id_serie),
+    semestre: horarioForm.value.semestre
+  }
+  console.log('Creando horario con:', data)
   saving.value = true
   try {
-    await api.horarios.create(horarioForm.value)
+    await api.horarios.create(data)
     showModalHorario.value = false
     loadHorarios()
   } catch (e) {
+    console.error('Error creando horario:', e)
     alert('Error: ' + e.message)
   } finally {
     saving.value = false
   }
 }
 
+async function eliminarHorario(horario) {
+  if (!confirm(`¿Eliminar el horario de ${getEscuelaNombre(horario.id_escuela)} - ${getPeriodoCodigo(horario.id_periodo)}?`)) {
+    return
+  }
+
+  try {
+    await api.horarios.delete(horario.id_horario)
+    if (selectedHorario.value?.id_horario === horario.id_horario) {
+      selectedHorario.value = null
+    }
+    loadHorarios()
+  } catch (e) {
+    alert('Error al eliminar: ' + e.message)
+  }
+}
+
 async function openAgregarBloque(horario, dia = 1, slot = 1) {
   selectedHorario.value = horario
+
+  const aulaSugerida = getAulaSugerida(horario.id_serie)
+
   bloqueForm.value = {
     id_grupo: '',
     dia_semana: dia,
     slot_inicio: slot,
     slot_fin: Math.min(slot + 1, 14),
-    id_aula: '',
+    id_aula: aulaSugerida ? aulaSugerida.id_aula.toString() : '',
     verificar_solo: false
   }
   conflictoError.value = null
   showModalBloque.value = true
 
   try {
-    gruposDisponibles.value = await api.gruposHorario.list(horario.id_escuela, horario.id_periodo)
+    gruposDisponibles.value = await api.gruposHorario.list(
+      horario.id_escuela,
+      horario.id_periodo,
+      horario.id_serie,
+      horario.semestre
+    )
   } catch (e) {
     gruposDisponibles.value = []
   }
@@ -1008,6 +1121,11 @@ onMounted(() => {
   color: #64748b;
 }
 
+.horario-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .grilla-card {
   overflow: hidden;
 }
@@ -1035,6 +1153,15 @@ onMounted(() => {
 
 .escuela-badge {
   background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.serie-badge {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
   color: white;
   padding: 4px 12px;
   border-radius: 20px;
@@ -1528,6 +1655,15 @@ onMounted(() => {
 
 .btn-secondary:hover {
   background: #e2e8f0;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
 }
 
 .btn-outline {
