@@ -1,6 +1,9 @@
 package validation
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 const slotMinutes = 60
 
@@ -70,6 +73,52 @@ func ValidatePlacement(input PlacementInput) []Finding {
 				Rule:     RuleCapacityReadjustment,
 				Severity: SeverityWarning,
 				Message:  "la matricula real excede el aforo del aula; se recomienda cambiar de aula o abrir otro grupo",
+			})
+		}
+	}
+
+	findings = append(findings, ValidateCourseHours(proposed, input.Existing)...)
+
+	return findings
+}
+
+func ValidateCourseHours(proposed Block, existing []Block) []Finding {
+	if proposed.CourseHoursTeoria == 0 && proposed.CourseHoursPractica == 0 {
+		return nil
+	}
+
+	var findings []Finding
+	existingSlotsTeoria := 0
+	existingSlotsPractica := 0
+
+	for _, b := range existing {
+		if b.GroupID == proposed.GroupID && b.ID != proposed.ID {
+			if b.ComponentType == "TEORIA" {
+				existingSlotsTeoria += b.EndSlot - b.StartSlot
+			} else if b.ComponentType == "PRACTICA" {
+				existingSlotsPractica += b.EndSlot - b.StartSlot
+			}
+		}
+	}
+
+	if proposed.ComponentType == "TEORIA" && proposed.CourseHoursTeoria > 0 {
+		totalSlots := proposed.EndSlot - proposed.StartSlot
+		if totalSlots+existingSlotsTeoria > proposed.CourseHoursTeoria {
+			findings = append(findings, Finding{
+				Rule:     RuleCourseHoursExceededTeoria,
+				Severity: SeverityBlocker,
+				Message:  fmt.Sprintf("las horas de teoria asignadas (%d) exceden las horas del curso (%d). Ya tiene %d horas asignadas.", totalSlots+existingSlotsTeoria, proposed.CourseHoursTeoria, existingSlotsTeoria),
+			})
+		}
+	}
+
+	if proposed.ComponentType == "PRACTICA" && proposed.CourseHoursPractica > 0 {
+		totalSlots := proposed.EndSlot - proposed.StartSlot
+		if totalSlots+existingSlotsPractica > proposed.CourseHoursPractica {
+			findings = append(findings, Finding{
+				Rule:     RuleCourseHoursExceededPractica,
+				Severity: SeverityBlocker,
+				Message:  fmt.Sprintf("las horas de practica asignadas (%d) exceden las horas del curso (%d). Ya tiene %d horas asignadas.", totalSlots+existingSlotsPractica, proposed.CourseHoursPractica, existingSlotsPractica),
 			})
 		}
 	}

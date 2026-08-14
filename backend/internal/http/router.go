@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -79,6 +80,7 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		api.GET("/grupos-horario", cat.GetGruposParaHorario)
 		api.GET("/bloques", cat.Bloques)
 		api.POST("/bloques", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.CreateBloque)
+		api.DELETE("/bloques/:id", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.DeleteBloque)
 		api.POST("/bloques/verificar", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.VerificarConflictoBloque)
 		api.GET("/bitacora", authHandler(), usuariosHandler("ADMIN_TI", "DGA"), cat.Bitacora)
 
@@ -92,6 +94,7 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 			cargaRoutes.POST("/:id/grupos", cargaAuth, cargaRoles, ca.CreateGrupo)
 			cargaRoutes.PUT("/grupos/:idGrupo", cargaAuth, cargaRoles, ca.UpdateGrupo)
 			cargaRoutes.POST("/:id/aprobar", cargaAuth, cargaRoles, ca.ApproveCarga)
+		api.POST("/cargas-academicas/:id/aprobar", cargaAuth, cargaRoles, ca.ApproveCarga)
 			cargaRoutes.GET("/resumen-docentes", cargaAuth, cargaRoles, ca.GetResumenDocentes)
 			cargaRoutes.GET("/docente/:idDocente/horas", cargaAuth, cargaRoles, ca.GetHorasDocente)
 		}
@@ -207,20 +210,27 @@ func rateLimitMiddleware(requests int, burst int, window time.Duration) gin.Hand
 	}
 
 	clients := make(map[string]*client)
+	var mu sync.Mutex
 
 	go func() {
 		for {
+			mu.Lock()
 			for k, v := range clients {
 				if time.Since(v.lastSeen) > window {
 					delete(clients, k)
 				}
 			}
+			mu.Unlock()
 			time.Sleep(time.Second)
 		}
 	}()
 
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
+
+		mu.Lock()
+		defer mu.Unlock()
+
 		cl, exists := clients[ip]
 
 		if !exists {

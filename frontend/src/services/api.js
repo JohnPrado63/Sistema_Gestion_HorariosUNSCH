@@ -103,6 +103,7 @@ export const api = {
   bloques: {
     list: () => api.get('/bloques'),
     create: (data) => api.post('/bloques', data),
+    delete: (id) => api.delete(`/bloques/${id}`),
     verificar: (data) => api.post('/bloques/verificar', data)
   },
 
@@ -111,7 +112,8 @@ export const api = {
   },
 
   cargas: {
-    list: () => api.get('/cargas-academicas')
+    list: () => api.get('/cargas-academicas'),
+    approve: (id, data) => api.post(`/cargas-academicas/${id}/aprobar`, data)
   },
 
   validaciones: {

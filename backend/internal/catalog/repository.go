@@ -29,6 +29,7 @@ type RepositoryInterface interface {
 	CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error)
 	VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error)
 	CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error)
+	DeleteBloque(ctx context.Context, id int) error
 	GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error)
 	GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int) ([]GrupoInfo, error)
 }
@@ -505,6 +506,11 @@ func (r Repository) CreateBloque(ctx context.Context, input CreateBloqueInput) (
 	return &b, nil
 }
 
+func (r Repository) DeleteBloque(ctx context.Context, id int) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM bloque_horario WHERE id_bloque = $1`, id)
+	return err
+}
+
 func (r Repository) GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT bh.id_bloque, bh.id_horario, bh.id_grupo, g.id_carga, e.id_escuela,
@@ -514,7 +520,8 @@ func (r Repository) GetBloquesByHorario(ctx context.Context, idHorario int) ([]B
 		       g.codigo_grupo, g.tipo_componente::text,
 		       h.estado::text,
 		       bh.dia_semana, bh.slot_inicio, bh.slot_fin,
-		       e.nombre as escuela_nombre, c.codigo as curso_codigo, c.nombre as curso_nombre
+		       e.nombre as escuela_nombre, c.codigo as curso_codigo, c.nombre as curso_nombre,
+		       c.horas_teoria, c.horas_practica, c.id_curso
 		FROM bloque_horario bh
 		JOIN horario h ON h.id_horario = bh.id_horario
 		JOIN grupo g ON g.id_grupo = bh.id_grupo
@@ -539,7 +546,8 @@ func (r Repository) GetBloquesByHorario(ctx context.Context, idHorario int) ([]B
 			&b.CodigoAula, &b.NombreDocente,
 			&b.CodigoGrupo, &b.TipoComponente, &b.EstadoHorario,
 			&b.DiaSemana, &b.SlotInicio, &b.SlotFin,
-			&b.NombreEscuela, &b.CodigoCurso, &b.NombreCurso); err != nil {
+			&b.NombreEscuela, &b.CodigoCurso, &b.NombreCurso,
+			&b.HorasTeoria, &b.HorasPractica, &b.IDCurso); err != nil {
 			return nil, err
 		}
 		items = append(items, b)

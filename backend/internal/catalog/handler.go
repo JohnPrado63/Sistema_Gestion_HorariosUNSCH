@@ -213,6 +213,23 @@ func (h Handler) CreateBloque(c *gin.Context) {
 	c.JSON(http.StatusCreated, bloque)
 }
 
+func (h Handler) DeleteBloque(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteBloque(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Bloque eliminado"})
+}
+
 func (h Handler) VerificarConflictoBloque(c *gin.Context) {
 	var input CreateBloqueInput
 	if err := c.ShouldBindJSON(&input); err != nil {
