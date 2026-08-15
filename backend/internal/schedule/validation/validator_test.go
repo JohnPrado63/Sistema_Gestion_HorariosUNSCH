@@ -4,9 +4,9 @@ import "testing"
 
 func TestValidatePlacementBlocksTeacherConflictRV01(t *testing.T) {
 	findings := ValidatePlacement(PlacementInput{
-		Proposed: block(1, 10, 1, 1, 1, 100, 1, 3, 4),
+		Proposed: block(1, 10, 1, 1, 1, 100, 1, 3, 5),
 		Existing: []Block{
-			block(2, 10, 2, 2, 2, 200, 1, 4, 5),
+			block(2, 10, 2, 2, 2, 200, 1, 4, 6),
 		},
 	})
 
@@ -15,9 +15,9 @@ func TestValidatePlacementBlocksTeacherConflictRV01(t *testing.T) {
 
 func TestValidatePlacementBlocksRoomConflictRV02(t *testing.T) {
 	findings := ValidatePlacement(PlacementInput{
-		Proposed: block(1, 10, 1, 1, 5, 100, 1, 3, 4),
+		Proposed: block(1, 10, 1, 1, 5, 100, 1, 3, 5),
 		Existing: []Block{
-			block(2, 20, 2, 2, 5, 200, 1, 4, 5),
+			block(2, 20, 2, 2, 5, 200, 1, 4, 6),
 		},
 	})
 
@@ -26,9 +26,9 @@ func TestValidatePlacementBlocksRoomConflictRV02(t *testing.T) {
 
 func TestValidatePlacementBlocksDepartmentSessionRV03(t *testing.T) {
 	findings := ValidatePlacement(PlacementInput{
-		Proposed: blockWithDepartment(1, 10, 1, 7, 1, 3, 4),
+		Proposed: blockWithDepartment(1, 10, 1, 7, 1, 3, 5),
 		DepartmentSessions: []DepartmentSession{
-			{DepartmentID: 7, Day: 1, StartSlot: 4, EndSlot: 5},
+			{DepartmentID: 7, Day: 1, StartSlot: 4, EndSlot: 6},
 		},
 	})
 
@@ -75,9 +75,9 @@ func TestValidateTeachingLoadApprovalAllowsConfirmedExceptionRV05(t *testing.T) 
 
 func TestValidatePlacementInformsSameSeriesConflictRV06(t *testing.T) {
 	findings := ValidatePlacement(PlacementInput{
-		Proposed: blockWithSeriesCourse(1, 10, 1, 8, 101, 1, 3, 4),
+		Proposed: blockWithSeriesCourse(1, 10, 1, 8, 101, 1, 3, 5),
 		Existing: []Block{
-			blockWithSeriesCourse(2, 20, 2, 8, 102, 1, 4, 5),
+			blockWithSeriesCourse(2, 20, 2, 8, 102, 1, 4, 6),
 		},
 	})
 
@@ -85,10 +85,10 @@ func TestValidatePlacementInformsSameSeriesConflictRV06(t *testing.T) {
 }
 
 func TestValidatePlacementBlocksSharedRoomReservedByAnotherSchoolRV07(t *testing.T) {
-	proposed := block(1, 10, 1, 1, 5, 100, 1, 3, 4)
+	proposed := block(1, 10, 1, 1, 5, 100, 1, 3, 5)
 	proposed.RoomShared = true
 
-	existing := block(2, 20, 2, 2, 5, 200, 1, 4, 5)
+	existing := block(2, 20, 2, 2, 5, 200, 1, 4, 6)
 	existing.RoomShared = true
 
 	findings := ValidatePlacement(PlacementInput{

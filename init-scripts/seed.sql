@@ -7,6 +7,7 @@
 
 -- 1. Periodo Académico
 INSERT INTO periodo_academico (codigo, activo) VALUES ('2026-I', true);
+INSERT INTO periodo_academico (codigo, activo) VALUES ('2026-II', false);
 
 -- 2. Estructura Institucional
 INSERT INTO facultad (nombre) VALUES ('Facultad de Ingeniería de Minas, Geología y Civil');

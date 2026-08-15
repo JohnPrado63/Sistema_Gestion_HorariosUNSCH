@@ -184,6 +184,20 @@ func (m *mockRepository) GetGruposParaHorario(ctx context.Context, idEscuela int
 	return nil, nil
 }
 
+func (m *mockRepository) DeleteHorario(ctx context.Context, id int) error {
+	if m.err != nil {
+		return m.err
+	}
+	return nil
+}
+
+func (m *mockRepository) DeleteBloque(ctx context.Context, id int) error {
+	if m.err != nil {
+		return m.err
+	}
+	return nil
+}
+
 func testContext() (*gin.Context, *httptest.ResponseRecorder) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()

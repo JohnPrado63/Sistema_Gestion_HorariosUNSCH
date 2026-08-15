@@ -589,7 +589,7 @@ func (r Repository) GetGruposParaHorario(ctx context.Context, idEscuela int, idP
 		if *semestre == "I" {
 			query += " AND RIGHT(c.codigo, 1) ~ '[13579]'"
 		} else if *semestre == "II" {
-			query += " AND RIGHT(c.codigo, 1) ~ '[02468]'"
+			query += " AND RIGHT(c.codigo, 1) ~ '[2468]'"
 		}
 	}
 

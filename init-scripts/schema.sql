@@ -162,10 +162,12 @@ CREATE TABLE horario (
     id_horario SERIAL PRIMARY KEY,
     id_escuela INT NOT NULL REFERENCES escuela_profesional(id_escuela) ON DELETE RESTRICT,
     id_periodo INT NOT NULL REFERENCES periodo_academico(id_periodo) ON DELETE RESTRICT,
+    id_serie INT REFERENCES serie(id_serie),
+    semestre VARCHAR(5) NOT NULL,
     estado estado_horario_enum NOT NULL DEFAULT 'BORRADOR',
     version_reajuste INT NOT NULL DEFAULT 0 CHECK (version_reajuste >= 0),
     fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uk_horario_escuela_periodo UNIQUE (id_escuela, id_periodo)
+    CONSTRAINT uk_horario_escuela_periodo_serie_semestre UNIQUE (id_escuela, id_periodo, id_serie, semestre)
 );
 
 CREATE TABLE bloque_horario (

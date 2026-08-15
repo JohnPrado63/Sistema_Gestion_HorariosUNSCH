@@ -12,7 +12,7 @@ import (
 func TestValidatePlacementHandlerReturnsFindings(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	h := NewHandler()
-	body := `{"proposed":{"teacher_id":10,"day":1,"start_slot":3,"end_slot":4,"room_id":5,"school_id":1},"existing":[{"teacher_id":10,"day":1,"start_slot":4,"end_slot":5,"room_id":6,"school_id":1}],"state":"BORRADOR"}`
+	body := `{"proposed":{"teacher_id":10,"day":1,"start_slot":3,"end_slot":5,"room_id":5,"school_id":1},"existing":[{"teacher_id":10,"day":1,"start_slot":4,"end_slot":6,"room_id":6,"school_id":1}],"state":"BORRADOR"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/validaciones/placement", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()

@@ -78,7 +78,7 @@
               </div>
               <div class="horario-info">
                 <h3>{{ getEscuelaNombre(h.id_escuela) }}</h3>
-                <p>{{ getPeriodoCodigo(h.id_periodo) }} - {{ getSerieDescripcion(getSerieNumero(h.id_serie)) }} - Semestre {{ h.semestre }}</p>
+                <p>{{ getPeriodoConSemestre(h.id_periodo, h.semestre) }} - {{ getSerieDescripcion(getSerieNumero(h.id_serie)) }}</p>
               </div>
               <div class="horario-footer" @click.stop>
                 <span class="horario-bloques">{{ getBloquesCount(h.id_horario) }} bloques</span>
@@ -101,7 +101,7 @@
             <div class="grilla-header-left">
               <h2 class="card-title">Grilla Horaria</h2>
               <span class="escuela-badge">{{ getEscuelaNombre(selectedHorario.id_escuela) }}</span>
-              <span class="serie-badge">{{ getSerieDescripcion(getSerieNumero(selectedHorario.id_serie)) }} - Semestre {{ selectedHorario.semestre }}</span>
+              <span class="serie-badge">{{ getPeriodoConSemestre(selectedHorario.id_periodo, selectedHorario.semestre) }} - {{ getSerieDescripcion(getSerieNumero(selectedHorario.id_serie)) }}</span>
               <span class="estado-badge" :class="getEstadoClass(selectedHorario.estado)">{{ selectedHorario.estado }}</span>
             </div>
             <div class="grilla-header-right">
@@ -477,9 +477,11 @@ async function loadCatalogos() {
     series.value = s
     aulas.value = a
 
-    const activo = p.find(x => x.activo)
-    if (activo) {
-      selectedPeriodo.value = activo.id_periodo
+    if (!selectedPeriodo.value) {
+      const activo = p.find(x => x.activo)
+      if (activo) {
+        selectedPeriodo.value = activo.id_periodo
+      }
     }
   } catch (e) {
     error.value = 'Error cargando catálogos: ' + e.message
@@ -498,10 +500,16 @@ async function loadHorarios() {
   error.value = ''
   try {
     const h = await api.horarios.list()
-    horarios.value = h.filter(x => x.id_periodo === selectedPeriodo.value)
+    const periodoId = Number(selectedPeriodo.value)
+    if (isNaN(periodoId)) {
+      console.error('selectedPeriodo.value is not a valid number:', selectedPeriodo.value)
+      horarios.value = []
+      return
+    }
+    horarios.value = h.filter(x => x.id_periodo === periodoId)
 
     if (selectedEscuela.value) {
-      horarios.value = horarios.value.filter(x => x.id_escuela === selectedEscuela.value)
+      horarios.value = horarios.value.filter(x => x.id_escuela === Number(selectedEscuela.value))
     }
 
     if (selectedHorario.value) {
@@ -539,6 +547,13 @@ function getEscuelaNombre(id) {
 function getPeriodoCodigo(id) {
   const p = periodos.value.find(x => x.id_periodo === id)
   return p ? p.codigo : `Periodo ${id}`
+}
+
+function getPeriodoConSemestre(idPeriodo, semestre) {
+  const p = periodos.value.find(x => x.id_periodo === idPeriodo)
+  if (!p) return `Periodo ${idPeriodo}`
+  const year = p.codigo.split('-')[0]
+  return `${year}-${semestre}`
 }
 
 function getSerieDescripcion(numeroCiclo) {
@@ -680,7 +695,15 @@ async function crearHorario() {
   try {
     await api.horarios.create(data)
     showModalHorario.value = false
-    loadHorarios()
+
+    const newPeriodoId = parseInt(horarioForm.value.id_periodo)
+    if (parseInt(selectedPeriodo.value) !== newPeriodoId) {
+      selectedPeriodo.value = newPeriodoId
+    }
+    console.log('Antes de loadHorarios - selectedPeriodo:', selectedPeriodo.value)
+    await loadHorarios()
+    console.log('Despues de loadHorarios - horarios.value.length:', horarios.value.length)
+    console.log('Despues de loadHorarios - horarios.value:', horarios.value)
   } catch (e) {
     console.error('Error creando horario:', e)
     alert('Error: ' + e.message)
@@ -690,7 +713,7 @@ async function crearHorario() {
 }
 
 async function eliminarHorario(horario) {
-  if (!confirm(`¿Eliminar el horario de ${getEscuelaNombre(horario.id_escuela)} - ${getPeriodoCodigo(horario.id_periodo)}?`)) {
+  if (!confirm(`¿Eliminar el horario de ${getEscuelaNombre(horario.id_escuela)} - ${getPeriodoConSemestre(horario.id_periodo, horario.semestre)}?`)) {
     return
   }
 
@@ -944,6 +967,7 @@ async function eliminarBloque(bloque) {
 }
 
 onMounted(() => {
+  console.log('Horarios.vue mounted - loading catalogos and horarios')
   loadCatalogos().then(() => {
     if (selectedPeriodo.value) {
       loadHorarios()
