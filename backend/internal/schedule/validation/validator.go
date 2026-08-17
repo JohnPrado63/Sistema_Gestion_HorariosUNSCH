@@ -210,5 +210,16 @@ func distanceMinutes(from int, to int, distances []Distance) int {
 			return distance.Minutes
 		}
 	}
+
+	if from == to {
+		return 0
+	}
+
+	for _, distance := range distances {
+		if distance.FromPavilionID == to && distance.ToPavilionID == from {
+			return distance.Minutes
+		}
+	}
+
 	return 0
 }

@@ -59,6 +59,18 @@ func TestValidatePlacementWarnsInsufficientTransferRV04b(t *testing.T) {
 	assertFinding(t, findings, RuleInsufficientTransfer, SeverityWarning)
 }
 
+func TestValidatePlacementUsesReverseDistanceForTransferRV04(t *testing.T) {
+	findings := ValidatePlacement(PlacementInput{
+		Proposed: blockWithPavilion(1, 10, 1, 2, 1, 5, 6),
+		Existing: []Block{
+			blockWithPavilion(2, 10, 1, 1, 1, 2, 3),
+		},
+		Distances: []Distance{{FromPavilionID: 2, ToPavilionID: 1, Minutes: 90}},
+	})
+
+	assertFinding(t, findings, RuleInsufficientTransfer, SeverityWarning)
+}
+
 func TestValidateTeachingLoadApprovalWarnsRV05(t *testing.T) {
 	findings := ValidateTeachingLoadApproval(TeachingLoadInput{TeacherID: 10, WeeklyHours: 18})
 
