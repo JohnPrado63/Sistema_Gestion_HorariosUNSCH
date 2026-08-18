@@ -96,7 +96,7 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 			cargaRoutes.POST("/:id/grupos", cargaAuth, cargaRoles, ca.CreateGrupo)
 			cargaRoutes.PUT("/grupos/:idGrupo", cargaAuth, cargaRoles, ca.UpdateGrupo)
 			cargaRoutes.POST("/:id/aprobar", cargaAuth, cargaRoles, ca.ApproveCarga)
-		api.POST("/cargas-academicas/:id/aprobar", cargaAuth, cargaRoles, ca.ApproveCarga)
+			cargaRoutes.GET("/nueva-necesidad", cargaAuth, cargaRoles, ca.GetGruposNuevaNecesidad)
 			cargaRoutes.GET("/resumen-docentes", cargaAuth, cargaRoles, ca.GetResumenDocentes)
 			cargaRoutes.GET("/docente/:idDocente/horas", cargaAuth, cargaRoles, ca.GetHorasDocente)
 		}

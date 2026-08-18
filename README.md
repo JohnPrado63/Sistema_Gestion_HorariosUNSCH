@@ -10,6 +10,24 @@ Sistema de Gestión de Horarios y Carga Académica de la Universidad Nacional de
 
 ## Configuración
 
+### Opción 1: Docker Compose (Recomendado para desarrollo)
+
+1. Copiar la configuración de desarrollo:
+   ```powershell
+   cp .env.docker .env
+   ```
+
+2. Levantar toda la aplicación:
+   ```powershell
+   docker compose up -d
+   ```
+
+3. Abrir en el navegador:
+   - Frontend: http://localhost:8081/app/
+   - API: http://localhost:8080/
+
+### Opción 2: Desarrollo local (sin Docker)
+
 1. Copiar el archivo de entorno de ejemplo:
    ```powershell
    cp .env.example .env
@@ -22,7 +40,9 @@ Sistema de Gestión de Horarios y Carga Académica de la Universidad Nacional de
    APP_PORT=8080
    ```
 
-**Nota**: El backend usa puerto `8080` y el frontend puerto `8081`. Asegúrate de que Docker tenga los puertos `5433` y `6379` disponibles.
+**Nota**: El backend usa puerto `8080` y el frontend puerto `8081`. Docker debe tener los puertos `5433` y `6379` disponibles.
+
+Consulta [README.docker.md](README.docker.md) para más opciones (producción, hot-reload, etc.).
 
 ## Ejecución
 

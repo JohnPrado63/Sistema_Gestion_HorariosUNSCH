@@ -256,9 +256,33 @@ func (r *Repository) GetHorasDocente(ctx context.Context, idDocente, idPeriodo i
 		FROM grupo g
 		JOIN carga_academica ca ON ca.id_carga = g.id_carga
 		JOIN curso c ON c.id_curso = ca.id_curso
-		WHERE g.id_docente = $1 AND ca.id_periodo = $2 AND ca.estado = 'AUTORIZADO'
+		WHERE g.id_docente = $1 AND ca.id_periodo = $2
 	`, idDocente, idPeriodo).Scan(&totalHoras)
 	return totalHoras, err
+}
+
+func (r *Repository) GetHorasGrupo(ctx context.Context, idGrupo int) (int, error) {
+	var horas int
+	err := r.db.QueryRow(ctx, `
+		SELECT c.horas_teoria + c.horas_practica
+		FROM grupo g
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		WHERE g.id_grupo = $1
+	`, idGrupo).Scan(&horas)
+	return horas, err
+}
+
+func (r *Repository) GetHorasGrupoYCarga(ctx context.Context, idGrupo int) (int, int, error) {
+	var horas, idCarga int
+	err := r.db.QueryRow(ctx, `
+		SELECT c.horas_teoria + c.horas_practica, g.id_carga
+		FROM grupo g
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		WHERE g.id_grupo = $1
+	`, idGrupo).Scan(&horas, &idCarga)
+	return horas, idCarga, err
 }
 
 func (r *Repository) GetDocentesResumen(ctx context.Context, idEscuela, idPeriodo int) ([]ResumenDocente, error) {
@@ -433,4 +457,92 @@ func formatSlotRange(inicio, fin int) string {
 		end = "??:??"
 	}
 	return start + "-" + end
+}
+
+func (r *Repository) GetGruposNuevaNecesidad(ctx context.Context, idPeriodo int) ([]Grupo, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT g.id_grupo, g.id_carga, g.id_docente, g.id_grupo_teoria_ref,
+		       g.codigo_grupo, g.tipo_componente, g.es_nueva_necesidad,
+		       g.matriculados_proyectados, g.matriculados_reales,
+		       c.horas_teoria + c.horas_practica as horas_semanales,
+		       COALESCE(d.nombres || ' ' || d.apellidos, '') as docente_nombre,
+		       ca.id_escuela, e.nombre as escuela_nombre,
+		       c.codigo as curso_codigo, c.nombre as curso_nombre
+		FROM grupo g
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		JOIN escuela_profesional e ON e.id_escuela = ca.id_escuela
+		LEFT JOIN docente d ON d.id_docente = g.id_docente
+		WHERE g.es_nueva_necesidad = true AND ca.id_periodo = $1
+		  AND g.id_docente IS NULL
+		ORDER BY e.nombre, c.codigo, g.codigo_grupo
+	`, idPeriodo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var grupos []Grupo
+	for rows.Next() {
+		var g Grupo
+		var docenteNombre string
+		if err := rows.Scan(
+			&g.ID, &g.IDCarga, &g.IDDocente, &g.IDGrupoTeoriaRef,
+			&g.CodigoGrupo, &g.TipoComponente, &g.EsNuevaNecesidad,
+			&g.MatriculadosProyectados, &g.MatriculadosReales,
+			&g.HorasSemanales, &docenteNombre,
+		); err != nil {
+			return nil, err
+		}
+		g.Docente = docenteNombre
+		grupos = append(grupos, g)
+	}
+	return grupos, rows.Err()
+}
+
+type NuevaNecesidadInfo struct {
+	Grupo     Grupo  `json:"grupo"`
+	EscuelaID int    `json:"escuela_id"`
+	Escuela   string `json:"escuela"`
+	CursoCodigo string `json:"curso_codigo"`
+	CursoNombre string `json:"curso_nombre"`
+}
+
+func (r *Repository) GetGruposNuevaNecesidadFull(ctx context.Context, idPeriodo int) ([]NuevaNecesidadInfo, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT g.id_grupo, g.id_carga, g.id_docente, g.id_grupo_teoria_ref,
+		       g.codigo_grupo, g.tipo_componente, g.es_nueva_necesidad,
+		       g.matriculados_proyectados, g.matriculados_reales,
+		       c.horas_teoria + c.horas_practica as horas_semanales,
+		       ca.id_escuela, e.nombre as escuela_nombre,
+		       c.codigo as curso_codigo, c.nombre as curso_nombre
+		FROM grupo g
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		JOIN escuela_profesional e ON e.id_escuela = ca.id_escuela
+		WHERE g.es_nueva_necesidad = true AND ca.id_periodo = $1
+		  AND g.id_docente IS NULL
+		ORDER BY e.nombre, c.codigo, g.codigo_grupo
+	`, idPeriodo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var grupos []NuevaNecesidadInfo
+	for rows.Next() {
+		var g NuevaNecesidadInfo
+		if err := rows.Scan(
+			&g.Grupo.ID, &g.Grupo.IDCarga, &g.Grupo.IDDocente, &g.Grupo.IDGrupoTeoriaRef,
+			&g.Grupo.CodigoGrupo, &g.Grupo.TipoComponente, &g.Grupo.EsNuevaNecesidad,
+			&g.Grupo.MatriculadosProyectados, &g.Grupo.MatriculadosReales,
+			&g.Grupo.HorasSemanales,
+			&g.EscuelaID, &g.Escuela,
+			&g.CursoCodigo, &g.CursoNombre,
+		); err != nil {
+			return nil, err
+		}
+		grupos = append(grupos, g)
+	}
+	return grupos, rows.Err()
 }

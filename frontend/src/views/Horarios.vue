@@ -71,14 +71,18 @@
           </div>
 
           <div v-else class="horarios-grid">
-            <div v-for="h in horarios" :key="h.id_horario" class="horario-card" :class="{ 'selected': selectedHorario?.id_horario === h.id_horario }" @click="selectHorario(h)">
+            <div v-for="h in horarios" :key="h.id_horario" class="horario-card" :class="{ 'selected': selectedHorario?.id_horario === h.id_horario, 'recent': esHorarioReciente(h.id_horario) }" @click="selectHorario(h)">
+              <div class="horario-card-top">
+                <span class="horario-id">#{{ h.id_horario }}</span>
+                <span v-if="esHorarioReciente(h.id_horario)" class="badge badge-reciente">Más reciente</span>
+              </div>
               <div class="horario-header">
                 <span class="badge" :class="getEstadoClass(h.estado)">{{ h.estado }}</span>
                 <span class="horario-version">v{{ h.version_reajuste }}</span>
               </div>
               <div class="horario-info">
                 <h3>{{ getEscuelaNombre(h.id_escuela) }}</h3>
-                <p>{{ getPeriodoConSemestre(h.id_periodo, h.semestre) }} - {{ getSerieDescripcion(getSerieNumero(h.id_serie)) }}</p>
+                <p>{{ getPeriodoConSemestre(h.id_periodo, h.semestre) }} - {{ getSerieDescripcion(getSerieNumero(h.id_serie), h.semestre) }}</p>
               </div>
               <div class="horario-footer" @click.stop>
                 <span class="horario-bloques">{{ getBloquesCount(h.id_horario) }} bloques</span>
@@ -101,7 +105,7 @@
             <div class="grilla-header-left">
               <h2 class="card-title">Grilla Horaria</h2>
               <span class="escuela-badge">{{ getEscuelaNombre(selectedHorario.id_escuela) }}</span>
-              <span class="serie-badge">{{ getPeriodoConSemestre(selectedHorario.id_periodo, selectedHorario.semestre) }} - {{ getSerieDescripcion(getSerieNumero(selectedHorario.id_serie)) }}</span>
+              <span class="serie-badge">{{ getPeriodoConSemestre(selectedHorario.id_periodo, selectedHorario.semestre) }} - {{ getSerieDescripcion(getSerieNumero(selectedHorario.id_serie), selectedHorario.semestre) }}</span>
               <span class="estado-badge" :class="getEstadoClass(selectedHorario.estado)">{{ selectedHorario.estado }}</span>
             </div>
             <div class="grilla-header-right">
@@ -556,15 +560,22 @@ function getPeriodoConSemestre(idPeriodo, semestre) {
   return `${year}-${semestre}`
 }
 
-function getSerieDescripcion(numeroCiclo) {
-  const map = {
-    100: 'Ciclos I-II',
-    200: 'Ciclos III-IV',
-    300: 'Ciclos V-VI',
-    400: 'Ciclos VII-VIII',
-    500: 'Ciclos IX-X'
+function getSerieDescripcion(numeroCiclo, semestre) {
+  if (!semestre) {
+    const map = {
+      100: 'Ciclos I-II',
+      200: 'Ciclos III-IV',
+      300: 'Ciclos V-VI',
+      400: 'Ciclos VII-VIII',
+      500: 'Ciclos IX-X'
+    }
+    return map[numeroCiclo] || `Ciclos ${numeroCiclo}`
   }
-  return map[numeroCiclo] || `Ciclos ${numeroCiclo}`
+  const cicloBase = Math.floor(numeroCiclo / 100)
+  const cicloRomano = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+  const cicloNum = (cicloBase - 1) * 2 + (semestre === 'II' ? 2 : 1)
+  const idx = cicloNum - 1
+  return `Ciclo ${cicloRomano[idx] || cicloNum}`
 }
 
 function getSerieNumero(idSerie) {
@@ -576,6 +587,12 @@ function getSerieNumero(idSerie) {
 function getBloquesCount(idHorario) {
   if (!bloquesRaw.value) return 0
   return bloquesRaw.value.filter(x => x.id_horario === idHorario).length
+}
+
+function esHorarioReciente(idHorario) {
+  if (horarios.value.length === 0) return false
+  const maxId = Math.max(...horarios.value.map(h => h.id_horario))
+  return idHorario === maxId
 }
 
 function getBloquesHorario() {
@@ -1088,6 +1105,40 @@ onMounted(() => {
 .horario-card.selected {
   border-color: #667eea;
   background: linear-gradient(135deg, #667eea10, #764ba210);
+}
+
+.horario-card.recent {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 2px #22c55e30;
+}
+
+.horario-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.horario-id {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: monospace;
+}
+
+.badge-reciente {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  font-size: 0.65rem;
+  animation: pulse-reciente 2s infinite;
+}
+
+@keyframes pulse-reciente {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .horario-header {

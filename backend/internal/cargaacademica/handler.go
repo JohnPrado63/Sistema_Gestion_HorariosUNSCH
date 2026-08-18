@@ -152,10 +152,14 @@ func (h *Handler) UpdateGrupo(c *gin.Context) {
 		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
 		if err == nil {
 			horasDocente, _ := h.repo.GetHorasDocente(c.Request.Context(), *input.IDDocente, *periodoActivo)
-			if horasDocente > 16 {
+			horasGrupoActual, _, _ := h.repo.GetHorasGrupoYCarga(c.Request.Context(), idGrupo)
+			horasNetas := horasDocente - horasGrupoActual
+			if horasNetas+horasGrupoActual > 16 {
 				c.JSON(http.StatusBadRequest, gin.H{
-					"error":          "Docente excederia las 16 horas lectivas",
-					"horas_actuales": horasDocente,
+					"error":            "Docente excederia las 16 horas lectivas",
+					"horas_actuales":   horasNetas,
+					"horas_grupo":      horasGrupoActual,
+					"horas_resultado":  horasNetas + horasGrupoActual,
 				})
 				return
 			}
@@ -259,6 +263,27 @@ func (h *Handler) GetHorasDocente(c *gin.Context) {
 		"horas_asignadas": horas,
 		"horas_restantes": 16 - horas,
 	})
+}
+
+func (h *Handler) GetGruposNuevaNecesidad(c *gin.Context) {
+	idPeriodoStr := c.Query("periodo")
+	idPeriodo, err := strconv.Atoi(idPeriodoStr)
+	if idPeriodo == 0 {
+		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No hay periodo activo"})
+			return
+		}
+		idPeriodo = *periodoActivo
+	}
+
+	grupos, err := h.repo.GetGruposNuevaNecesidadFull(c.Request.Context(), idPeriodo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, grupos)
 }
 
 func (h *Handler) GetDisponibilidadDocente(c *gin.Context) {

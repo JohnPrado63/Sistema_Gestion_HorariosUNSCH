@@ -1,0 +1,23 @@
+# =============================================================================
+# Docker Compose Override - Desarrollo local con hot-reload
+# Uso: docker compose up -d
+# Este archivo se aplica automáticamente sobre docker-compose.yml
+# =============================================================================
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+    environment:
+      - GIN_MODE=debug
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
