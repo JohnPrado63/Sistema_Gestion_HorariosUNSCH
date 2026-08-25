@@ -122,10 +122,10 @@ export const api = {
   },
 
   cargas: {
-    list: () => api.get('/cargas-academicas'),
-    create: (data) => api.post('/cargas-academicas', data),
-    delete: (id) => api.delete(`/cargas-academicas/${id}`),
-    approve: (id, data) => api.post(`/cargas-academicas/${id}/aprobar`, data)
+    list: () => api.get('/carga-academica'),
+    create: (data) => api.post('/carga-academica', data),
+    delete: (id) => api.delete(`/carga-academica/${id}`),
+    approve: (id, data) => api.post(`/carga-academica/${id}/aprobar`, data)
   },
 
   validaciones: {

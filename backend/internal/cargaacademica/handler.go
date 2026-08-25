@@ -123,21 +123,36 @@ func (h *Handler) CreateGrupo(c *gin.Context) {
 
 	if input.IDDocente != nil {
 		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
-		if err == nil {
-			horasDocente, _ := h.repo.GetHorasDocente(c.Request.Context(), *input.IDDocente, *periodoActivo)
-			cursoHoras := 0
-			carga, _ := h.repo.GetCargaByID(c.Request.Context(), idCarga)
-			if carga != nil {
-				cursoHoras = carga.Curso.HorasTeoria + carga.Curso.HorasPractica
-			}
-			if horasDocente+cursoHoras > 16 {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error":            "Docente excederia las 16 horas lectivas",
-					"horas_actuales":   horasDocente,
-					"horas_nueva_curso": cursoHoras,
-				})
-				return
-			}
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No hay periodo activo definido"})
+			return
+		}
+
+		carga, err := h.repo.GetCargaByID(c.Request.Context(), idCarga)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener la carga academica"})
+			return
+		}
+		if carga == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Carga academica no encontrada"})
+			return
+		}
+
+		cursoHoras := carga.Curso.HorasTeoria + carga.Curso.HorasPractica
+		horasDocente, err := h.repo.GetHorasDocente(c.Request.Context(), *input.IDDocente, *periodoActivo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al verificar horas del docente"})
+			return
+		}
+
+		if horasDocente+cursoHoras > 16 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":             "Docente excederia las 16 horas lectivas",
+				"horas_actuales":    horasDocente,
+				"horas_nueva_curso": cursoHoras,
+				"horas_resultado":   horasDocente + cursoHoras,
+			})
+			return
 		}
 	}
 
@@ -165,19 +180,32 @@ func (h *Handler) UpdateGrupo(c *gin.Context) {
 
 	if input.IDDocente != nil {
 		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
-		if err == nil {
-			horasDocente, _ := h.repo.GetHorasDocente(c.Request.Context(), *input.IDDocente, *periodoActivo)
-			horasGrupoActual, _, _ := h.repo.GetHorasGrupoYCarga(c.Request.Context(), idGrupo)
-			horasNetas := horasDocente - horasGrupoActual
-			if horasNetas+horasGrupoActual > 16 {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error":            "Docente excederia las 16 horas lectivas",
-					"horas_actuales":   horasNetas,
-					"horas_grupo":      horasGrupoActual,
-					"horas_resultado":  horasNetas + horasGrupoActual,
-				})
-				return
-			}
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No hay periodo activo definido"})
+			return
+		}
+
+		horasGrupoActual, _, err := h.repo.GetHorasGrupoYCarga(c.Request.Context(), idGrupo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener horas del grupo"})
+			return
+		}
+
+		horasDocente, err := h.repo.GetHorasDocente(c.Request.Context(), *input.IDDocente, *periodoActivo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al verificar horas del docente"})
+			return
+		}
+
+		horasNetas := horasDocente - horasGrupoActual
+		if horasNetas+horasGrupoActual > 16 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":           "Docente excederia las 16 horas lectivas",
+				"horas_actuales":  horasDocente,
+				"horas_grupo":     horasGrupoActual,
+				"horas_resultado": horasNetas + horasGrupoActual,
+			})
+			return
 		}
 	}
 

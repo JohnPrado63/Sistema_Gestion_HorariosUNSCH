@@ -586,8 +586,10 @@ async function crearCarga() {
   }
   saving.value = true
   try {
-    await api.cargas.create(nuevaCargaForm.value)
+    const result = await api.cargas.create(nuevaCargaForm.value)
     showNuevaCargaModal.value = false
+    selectedEscuela.value = ''
+    selectedPeriodo.value = ''
     loadCargas()
   } catch (e) {
     alert('Error: ' + e.message)
@@ -657,7 +659,7 @@ async function saveGrupo() {
   saving.value = true
   try {
     if (editingGrupo.value) {
-      await api.post(`/carga-academica/grupos/${editingGrupo.value.id_grupo}`, {
+      await api.put(`/carga-academica/grupos/${editingGrupo.value.id_grupo}`, {
         id_docente: grupoForm.value.id_docente,
         codigo_grupo: grupoForm.value.codigo_grupo,
         es_nueva_necesidad: grupoForm.value.es_nueva_necesidad,
