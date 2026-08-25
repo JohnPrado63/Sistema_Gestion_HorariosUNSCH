@@ -47,6 +47,7 @@ type CreateGrupoInput struct {
 	TipoComponente         string `json:"tipo_componente" binding:"required,oneof=TEORIA PRACTICA"`
 	EsNuevaNecesidad       bool   `json:"es_nueva_necesidad"`
 	MatriculadosProyectados int   `json:"matriculados_proyectados"`
+	IDGrupoTeoriaRef       *int   `json:"id_grupo_teoria_ref"`
 }
 
 type UpdateGrupoInput struct {

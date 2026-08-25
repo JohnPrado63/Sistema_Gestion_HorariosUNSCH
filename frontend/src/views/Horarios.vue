@@ -322,7 +322,7 @@
             <select v-model="bloqueForm.id_grupo" class="form-input" @change="onGrupoChange">
               <option value="">-- Seleccionar --</option>
               <option v-for="g in gruposDisponibles" :key="g.id_grupo" :value="g.id_grupo">
-                {{ g.codigo_curso }} - {{ g.nombre_curso }} ({{ g.codigo_grupo }}) - {{ g.docente_nombre || 'Sin docente' }}
+                {{ g.codigo_curso }} - {{ g.nombre_curso }} ({{ g.codigo_grupo }}) [{{ g.tipo_componente }}] - {{ g.docente_nombre || 'Sin docente' }}
               </option>
             </select>
           </div>

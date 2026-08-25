@@ -112,7 +112,7 @@
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                   </svg>
                 </button>
-                <button v-if="carga.estado === 'BORRADOR'" class="btn btn-success btn-sm" @click="openAgregarGrupo(carga)">
+                <button class="btn btn-success btn-sm" @click="openAgregarGrupo(carga)">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="12" y1="5" x2="12" y2="19"/>
                     <line x1="5" y1="12" x2="19" y2="12"/>
@@ -295,6 +295,17 @@
               <label class="form-label">Matriculados Proyectados</label>
               <input v-model.number="grupoForm.matriculados_proyectados" type="number" class="form-input" min="0">
             </div>
+          </div>
+
+          <div v-if="grupoForm.tipo_componente === 'PRACTICA' && selectedCarga?.grupos" class="form-group">
+            <label class="form-label">Grupo de Teoría Asociado</label>
+            <select v-model="grupoForm.id_grupo_teoria_ref" class="form-input">
+              <option :value="null">-- Seleccionar grupo teoría --</option>
+              <option v-for="g in gruposTeoriaDisponibles" :key="g.id_grupo" :value="g.id_grupo">
+                {{ g.codigo_grupo }} - {{ g.docente || 'Sin docente' }}
+              </option>
+            </select>
+            <small class="form-hint">Selecciona el grupo de teoría al que pertenece esta práctica</small>
           </div>
 
           <div class="form-group">
@@ -481,8 +492,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import api from '../services/api'
+
+const gruposTeoriaDisponibles = computed(() => {
+  if (!selectedCarga.value?.grupos) return []
+  return selectedCarga.value.grupos.filter(g => g.tipo_componente === 'TEORIA')
+})
 
 const activeTab = ref('cargas')
 const loading = ref(false)
@@ -524,7 +540,8 @@ const grupoForm = ref({
   tipo_componente: 'TEORIA',
   id_docente: null,
   es_nueva_necesidad: false,
-  matriculados_proyectados: 0
+  matriculados_proyectados: 0,
+  id_grupo_teoria_ref: null
 })
 
 async function loadCatalogos() {
@@ -633,7 +650,8 @@ function openAgregarGrupo(carga) {
     tipo_componente: 'TEORIA',
     id_docente: null,
     es_nueva_necesidad: false,
-    matriculados_proyectados: carga.curso?.creditos * 2 || 30
+    matriculados_proyectados: carga.curso?.creditos * 2 || 30,
+    id_grupo_teoria_ref: null
   }
   docenteHoras.value = null
   docenteBloques.value = []
@@ -671,7 +689,8 @@ async function saveGrupo() {
         tipo_componente: grupoForm.value.tipo_componente,
         id_docente: grupoForm.value.id_docente,
         es_nueva_necesidad: grupoForm.value.es_nueva_necesidad,
-        matriculados_proyectados: grupoForm.value.matriculados_proyectados
+        matriculados_proyectados: grupoForm.value.matriculados_proyectados,
+        id_grupo_teoria_ref: grupoForm.value.id_grupo_teoria_ref
       })
     }
     closeModal()

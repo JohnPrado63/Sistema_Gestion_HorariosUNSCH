@@ -228,10 +228,10 @@ func (r *Repository) GetGruposByCarga(ctx context.Context, idCarga int) ([]Grupo
 func (r *Repository) CreateGrupo(ctx context.Context, idCarga int, input CreateGrupoInput) (*Grupo, error) {
 	var idGrupo int
 	err := r.db.QueryRow(ctx, `
-		INSERT INTO grupo (id_carga, id_docente, codigo_grupo, tipo_componente, es_nueva_necesidad, matriculados_proyectados)
-		VALUES ($1, $2, $3, $4::tipo_componente_enum, $5, $6)
+		INSERT INTO grupo (id_carga, id_docente, codigo_grupo, tipo_componente, es_nueva_necesidad, matriculados_proyectados, id_grupo_teoria_ref)
+		VALUES ($1, $2, $3, $4::tipo_componente_enum, $5, $6, $7)
 		RETURNING id_grupo
-	`, idCarga, input.IDDocente, input.CodigoGrupo, input.TipoComponente, input.EsNuevaNecesidad, input.MatriculadosProyectados).Scan(&idGrupo)
+	`, idCarga, input.IDDocente, input.CodigoGrupo, input.TipoComponente, input.EsNuevaNecesidad, input.MatriculadosProyectados, input.IDGrupoTeoriaRef).Scan(&idGrupo)
 	if err != nil {
 		return nil, err
 	}
@@ -303,6 +303,7 @@ func (r *Repository) GetHorasDocente(ctx context.Context, idDocente, idPeriodo i
 		JOIN carga_academica ca ON ca.id_carga = g.id_carga
 		JOIN curso c ON c.id_curso = ca.id_curso
 		WHERE g.id_docente = $1 AND ca.id_periodo = $2
+		  AND (g.tipo_componente = 'TEORIA' OR g.id_grupo_teoria_ref IS NULL)
 	`, idDocente, idPeriodo).Scan(&totalHoras)
 	return totalHoras, err
 }
@@ -383,6 +384,7 @@ func (r *Repository) GetCursosDocente(ctx context.Context, idDocente, idPeriodo 
 		JOIN carga_academica ca ON ca.id_carga = g.id_carga
 		JOIN curso c ON c.id_curso = ca.id_curso
 		WHERE g.id_docente = $1 AND ca.id_periodo = $2
+		  AND (g.tipo_componente = 'TEORIA' OR g.id_grupo_teoria_ref IS NULL)
 		ORDER BY c.codigo
 	`, idDocente, idPeriodo)
 	if err != nil {
