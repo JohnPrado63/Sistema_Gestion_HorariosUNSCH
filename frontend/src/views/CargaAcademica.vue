@@ -23,7 +23,7 @@
           </select>
         </div>
         <select v-model="selectedPeriodo" class="filter-select" @change="loadCargas">
-          <option value="">Periodo...</option>
+          <option value="">Todos los periodos</option>
           <option v-for="p in periodos" :key="p.id_periodo" :value="p.id_periodo">
             {{ p.codigo }}
           </option>
@@ -35,6 +35,13 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
           Actualizar
+        </button>
+        <button class="btn btn-primary" @click="openNuevaCarga">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nueva Carga
         </button>
       </div>
     </header>
@@ -98,20 +105,28 @@
                 </span>
                 <span v-if="carga.escuela" class="escuela-tag">{{ carga.escuela }}</span>
               </div>
-              <button v-if="carga.estado === 'BORRADOR'" class="btn btn-success btn-sm" @click="openAgregarGrupo(carga)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                + Grupo
-              </button>
-              <button v-if="carga.estado === 'BORRADOR'" class="btn btn-primary btn-sm" @click="openApproveModal(carga)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="9 11 12 14 22 4"/>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                </svg>
-                Aprobar
-              </button>
+              <div class="carga-actions">
+                <button v-if="carga.estado === 'BORRADOR'" class="btn btn-danger btn-sm" @click="eliminarCarga(carga)" title="Eliminar carga">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+                <button v-if="carga.estado === 'BORRADOR'" class="btn btn-success btn-sm" @click="openAgregarGrupo(carga)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  + Grupo
+                </button>
+                <button v-if="carga.estado === 'BORRADOR'" class="btn btn-primary btn-sm" @click="openApproveModal(carga)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                  Aprobar
+                </button>
+              </div>
             </div>
 
             <div class="carga-curso">
@@ -404,6 +419,64 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Nueva Carga -->
+    <div v-if="showNuevaCargaModal" class="modal-overlay" @click.self="showNuevaCargaModal = false">
+      <div class="modal modal-md">
+        <div class="modal-header">
+          <h2>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            Nueva Carga Académica
+          </h2>
+          <button class="btn btn-icon" @click="showNuevaCargaModal = false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Curso</label>
+            <select v-model="nuevaCargaForm.id_curso" class="form-input">
+              <option value="">-- Seleccionar curso --</option>
+              <option v-for="c in cursosDisponibles" :key="c.id_curso" :value="c.id_curso">
+                {{ c.codigo }} - {{ c.nombre }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Periodo</label>
+            <select v-model="nuevaCargaForm.id_periodo" class="form-input">
+              <option value="">-- Seleccionar periodo --</option>
+              <option v-for="p in periodos" :key="p.id_periodo" :value="p.id_periodo">
+                {{ p.codigo }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Escuela</label>
+            <select v-model="nuevaCargaForm.id_escuela" class="form-input">
+              <option value="">-- Seleccionar escuela --</option>
+              <option v-for="e in escuelas" :key="e.id_escuela" :value="e.id_escuela">
+                {{ e.nombre }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" @click="showNuevaCargaModal = false">Cancelar</button>
+          <button class="btn btn-primary" @click="crearCarga" :disabled="saving">
+            {{ saving ? 'Creando...' : 'Crear Carga' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -438,6 +511,14 @@ const approveForm = ref({
   justificacion: ''
 })
 
+const showNuevaCargaModal = ref(false)
+const nuevaCargaForm = ref({
+  id_curso: '',
+  id_periodo: '',
+  id_escuela: ''
+})
+const cursosDisponibles = ref([])
+
 const grupoForm = ref({
   codigo_grupo: '',
   tipo_componente: 'TEORIA',
@@ -448,14 +529,16 @@ const grupoForm = ref({
 
 async function loadCatalogos() {
   try {
-    const [p, e, d] = await Promise.all([
+    const [p, e, d, c] = await Promise.all([
       api.periodos.list(),
       api.escuelas.list(),
-      api.docentes.list()
+      api.docentes.list(),
+      api.get('/cursos')
     ])
     periodos.value = p
     escuelas.value = e
     docentes.value = d
+    cursosDisponibles.value = c
 
     const activo = p.find(x => x.activo)
     if (activo) {
@@ -467,25 +550,59 @@ async function loadCatalogos() {
 }
 
 async function loadCargas() {
-  if (!selectedPeriodo.value) {
-    cargas.value = []
-    return
-  }
-
   loading.value = true
   error.value = ''
   try {
     const params = new URLSearchParams()
-    params.append('periodo', selectedPeriodo.value)
+    if (selectedPeriodo.value) {
+      params.append('periodo', selectedPeriodo.value)
+    }
     if (selectedEscuela.value) {
       params.append('escuela', selectedEscuela.value)
     }
 
-    cargas.value = await api.get(`/carga-academica?${params.toString()}`)
+    const queryString = params.toString()
+    cargas.value = await api.get(`/carga-academica${queryString ? '?' + queryString : ''}`)
   } catch (e) {
     error.value = e.message
   } finally {
     loading.value = false
+  }
+}
+
+function openNuevaCarga() {
+  nuevaCargaForm.value = {
+    id_curso: '',
+    id_periodo: selectedPeriodo.value || '',
+    id_escuela: selectedEscuela.value || ''
+  }
+  showNuevaCargaModal.value = true
+}
+
+async function crearCarga() {
+  if (!nuevaCargaForm.value.id_curso || !nuevaCargaForm.value.id_periodo || !nuevaCargaForm.value.id_escuela) {
+    alert('Completa todos los campos')
+    return
+  }
+  saving.value = true
+  try {
+    await api.cargas.create(nuevaCargaForm.value)
+    showNuevaCargaModal.value = false
+    loadCargas()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarCarga(carga) {
+  if (!confirm(`¿Eliminar la carga de ${carga.curso?.nombre}?`)) return
+  try {
+    await api.cargas.delete(carga.id_carga)
+    loadCargas()
+  } catch (e) {
+    alert('Error: ' + e.message)
   }
 }
 
@@ -979,6 +1096,22 @@ onMounted(() => {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.carga-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-danger {
+  background: #ef4444 !important;
+  color: white !important;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: #dc2626 !important;
 }
 
 .estado-badge {

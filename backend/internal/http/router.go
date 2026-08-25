@@ -93,6 +93,7 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 			cargaRoutes.GET("", cargaAuth, cargaRoles, ca.ListCargas)
 			cargaRoutes.GET("/:id", cargaAuth, cargaRoles, ca.GetCarga)
 			cargaRoutes.POST("", cargaAuth, cargaRoles, ca.CreateCarga)
+			cargaRoutes.DELETE("/:id", cargaAuth, cargaRoles, ca.DeleteCarga)
 			cargaRoutes.POST("/:id/grupos", cargaAuth, cargaRoles, ca.CreateGrupo)
 			cargaRoutes.PUT("/grupos/:idGrupo", cargaAuth, cargaRoles, ca.UpdateGrupo)
 			cargaRoutes.POST("/:id/aprobar", cargaAuth, cargaRoles, ca.ApproveCarga)

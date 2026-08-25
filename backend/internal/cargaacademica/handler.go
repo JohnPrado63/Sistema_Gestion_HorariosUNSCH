@@ -37,8 +37,7 @@ func (h *Handler) ListCargas(c *gin.Context) {
 	} else if idPeriodo > 0 {
 		cargas, err = h.repo.ListCargasByPeriodo(c.Request.Context(), idPeriodo)
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Se requiere parametro periodo"})
-		return
+		cargas, err = h.repo.ListCargasAll(c.Request.Context())
 	}
 
 	if err != nil {
@@ -91,6 +90,22 @@ func (h *Handler) CreateCarga(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, carga)
+}
+
+func (h *Handler) DeleteCarga(c *gin.Context) {
+	idCarga, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalido"})
+		return
+	}
+
+	err = h.repo.DeleteCarga(c.Request.Context(), idCarga)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Carga eliminada correctamente"})
 }
 
 func (h *Handler) CreateGrupo(c *gin.Context) {

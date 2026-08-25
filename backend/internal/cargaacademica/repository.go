@@ -113,6 +113,41 @@ func (r *Repository) ListCargasByEscuela(ctx context.Context, idEscuela, idPerio
 	return cargas, rows.Err()
 }
 
+func (r *Repository) ListCargasAll(ctx context.Context) ([]CargaAcademica, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT ca.id_carga, ca.id_curso, ca.id_periodo, ca.id_escuela, ca.estado, COALESCE(ca.fecha_aprobacion::text, ''),
+		       c.codigo, c.nombre, c.horas_teoria, c.horas_practica, c.creditos,
+		       e.nombre
+		FROM carga_academica ca
+		JOIN curso c ON c.id_curso = ca.id_curso
+		JOIN escuela_profesional e ON e.id_escuela = ca.id_escuela
+		ORDER BY ca.id_periodo DESC, e.nombre, c.codigo
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var cargas []CargaAcademica
+	for rows.Next() {
+		var c CargaAcademica
+		var escuelaNombre string
+		var cursoInfo CursoInfo
+		if err := rows.Scan(
+			&c.IDCarga, &c.IDCurso, &c.IDPeriodo, &c.IDEscuela, &c.Estado, &c.FechaAprobacion,
+			&cursoInfo.Codigo, &cursoInfo.Nombre, &cursoInfo.HorasTeoria, &cursoInfo.HorasPractica, &cursoInfo.Creditos,
+			&escuelaNombre,
+		); err != nil {
+			return nil, err
+		}
+		cursoInfo.ID = c.IDCurso
+		c.Curso = &cursoInfo
+		c.Escuela = escuelaNombre
+		cargas = append(cargas, c)
+	}
+	return cargas, rows.Err()
+}
+
 func (r *Repository) CreateCarga(ctx context.Context, input CreateCargaInput) (*CargaAcademica, error) {
 	var idCarga int
 	err := r.db.QueryRow(ctx, `
@@ -125,6 +160,17 @@ func (r *Repository) CreateCarga(ctx context.Context, input CreateCargaInput) (*
 		return nil, err
 	}
 	return r.GetCargaByID(ctx, idCarga)
+}
+
+func (r *Repository) DeleteCarga(ctx context.Context, idCarga int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM carga_academica WHERE id_carga = $1`, idCarga)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return errors.New("carga academica no encontrada")
+	}
+	return nil
 }
 
 func (r *Repository) ApproveCarga(ctx context.Context, idCarga int, idUsuario int, justificacion string) error {
@@ -287,15 +333,15 @@ func (r *Repository) GetHorasGrupoYCarga(ctx context.Context, idGrupo int) (int,
 
 func (r *Repository) GetDocentesResumen(ctx context.Context, idEscuela, idPeriodo int) ([]ResumenDocente, error) {
 	rows, err := r.db.Query(ctx, `
-		SELECT DISTINCT d.id_docente, d.codigo_plaza, d.nombres, d.apellidos, e.id_escuela, e.nombre as escuela
+		SELECT DISTINCT ON (d.id_docente) d.id_docente, d.codigo_plaza, d.nombres || ' ' || d.apellidos, e.id_escuela, e.nombre as escuela
 		FROM docente d
 		JOIN departamento_academico dep ON dep.id_departamento = d.id_departamento
 		JOIN escuela_profesional e ON e.id_departamento = dep.id_departamento
 		JOIN grupo g ON g.id_docente = d.id_docente
 		JOIN carga_academica ca ON ca.id_carga = g.id_carga
-		WHERE ca.id_periodo = $1 AND g.id_docente IS NOT NULL
-		ORDER BY d.apellidos, d.nombres
-	`, idPeriodo)
+		WHERE ca.id_periodo = $1 AND g.id_docente IS NOT NULL AND e.id_escuela = $2
+		ORDER BY d.id_docente, d.apellidos, d.nombres
+	`, idPeriodo, idEscuela)
 	if err != nil {
 		return nil, err
 	}

@@ -123,6 +123,8 @@ export const api = {
 
   cargas: {
     list: () => api.get('/cargas-academicas'),
+    create: (data) => api.post('/cargas-academicas', data),
+    delete: (id) => api.delete(`/cargas-academicas/${id}`),
     approve: (id, data) => api.post(`/cargas-academicas/${id}/aprobar`, data)
   },
 
