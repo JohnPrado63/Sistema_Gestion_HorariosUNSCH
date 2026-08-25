@@ -450,8 +450,14 @@ func (r Repository) VerificarConflictoBloque(ctx context.Context, input CreateBl
 	var conflictos []ConflictoBloque
 
 	if input.IDDocente != nil {
+		var idPeriodo int
+		err := r.db.QueryRow(ctx, `SELECT id_periodo FROM horario WHERE id_horario = $1`, input.IDHorario).Scan(&idPeriodo)
+		if err != nil {
+			return nil, err
+		}
+
 		var count int
-		err := r.db.QueryRow(ctx, `
+		err = r.db.QueryRow(ctx, `
 			SELECT COUNT(*) FROM bloque_horario bh
 			JOIN grupo g ON g.id_grupo = bh.id_grupo
 			JOIN carga_academica ca ON ca.id_carga = g.id_carga
@@ -459,7 +465,7 @@ func (r Repository) VerificarConflictoBloque(ctx context.Context, input CreateBl
 			WHERE g.id_docente = $1 AND h.id_periodo = $2
 			  AND bh.dia_semana = $3
 			  AND bh.slot_inicio < $5 AND bh.slot_fin > $4
-		`, *input.IDDocente, input.IDHorario, input.DiaSemana, input.SlotInicio, input.SlotFin).Scan(&count)
+		`, *input.IDDocente, idPeriodo, input.DiaSemana, input.SlotInicio, input.SlotFin).Scan(&count)
 		if err != nil {
 			return nil, err
 		}
@@ -589,7 +595,7 @@ func (r Repository) GetGruposParaHorario(ctx context.Context, idEscuela int, idP
 		if *semestre == "I" {
 			query += " AND RIGHT(c.codigo, 1) ~ '[13579]'"
 		} else if *semestre == "II" {
-			query += " AND RIGHT(c.codigo, 1) ~ '[2468]'"
+			query += " AND RIGHT(c.codigo, 1) ~ '[02468]'"
 		}
 	}
 

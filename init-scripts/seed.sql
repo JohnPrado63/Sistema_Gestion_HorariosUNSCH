@@ -81,7 +81,39 @@ INSERT INTO curso (id_serie, codigo, nombre, creditos, horas_teoria, horas_pract
 (200, 'CS201', 'Programación Orientada a Objetos', 4, 2, 2),
 (200, 'MAT201', 'Cálculo I', 4, 3, 1),
 (200, 'EDD201', 'Estructuras de Datos', 4, 2, 2),
-(200, 'FIS201', 'Física Computacional', 3, 2, 1);
+(200, 'FIS201', 'Física Computacional', 3, 2, 1),
+
+-- Serie 300 (III ciclo) - 300-I
+(300, 'IS-385', 'Metodos Numericos', 4, 2, 2),
+(300, 'IS-381', 'Modelamiento de Datos', 4, 2, 2),
+(300, 'IS-383', 'Sistemas Electricos y Electronicos', 4, 2, 2),
+(300, 'IS-389', 'Gestion de Procesos de Negocios', 3, 2, 0),
+(300, 'IS-387', 'Disenio de Software', 4, 2, 2),
+(300, 'ES-381', 'Estadistica Aplicada', 3, 2, 0),
+
+-- Serie 300 (III ciclo) - 300-II
+(300, 'IS-382', 'Gestion de Entornos de Base de Datos', 4, 2, 0),
+(300, 'IS-384', 'Sistemas Digitales y Arquitectura de Computadores', 4, 2, 2),
+(300, 'IS-380', 'Sistemas Operativos', 4, 3, 0),
+(300, 'IS-386', 'Innovacion Tecnologica, Creatividad y Emprendimiento', 3, 2, 0),
+(300, 'IS-388', 'Construccion y Evolucion de Software', 4, 2, 0),
+
+-- Serie 400 (IV ciclo) - 400-I
+(400, 'IS-483', 'Gestion de Datos e Informacion', 4, 2, 0),
+(400, 'DE-481', 'Derecho Informatico', 2, 2, 0),
+(400, 'IS-485', 'Redes de Datos', 4, 3, 0),
+(400, 'IS-487', 'Gestion de Riesgos y Seguridad de TI', 4, 2, 0),
+(400, 'IS-481', 'Metodologia de la Investigacion Cientifica', 4, 3, 2),
+(400, 'IS-489', 'Pruebas y Aseguramiento de Calidad de Software', 3, 2, 0),
+
+-- Serie 400 (IV ciclo) - 400-II
+(400, 'IS-480', 'Servicio Social Universitario', 3, 0, 6),
+(400, 'IS-482', 'Seminario de Tesis I', 4, 2, 0),
+(400, 'IS-484', 'Inteligencia Artificial I', 4, 3, 0),
+(400, 'IS-486', 'Telecomunicaciones', 4, 3, 0),
+(400, 'IS-488', 'Arquitectura de Software', 4, 3, 0),
+(400, 'IS-882', 'Desarrollo Web', 3, 2, 0),
+(400, 'IS-884', 'Informatica Forense', 3, 2, 0);
 
 -- 7. CARGAS ACADÉMICAS DE EJEMPLO (Periodo 2026-I)
 -- Estas están en estado BORRADOR para poder probar

@@ -790,59 +790,21 @@ async function verificarBloque() {
     const grupo = gruposDisponibles.value.find(g => g.id_grupo === parseInt(bloqueForm.value.id_grupo))
     const aula = aulas.value.find(a => a.id_aula === parseInt(bloqueForm.value.id_aula))
 
-    const existingBloques = getBloquesHorario().map(b => ({
-      id: b.id_bloque,
-      teacher_id: b.id_docente,
-      day: b.dia_semana,
-      start_slot: b.slot_inicio,
-      end_slot: b.slot_fin,
-      room_id: b.id_aula,
-      school_id: selectedHorario.value.id_escuela,
-      pavilion_id: b.id_pabellon || 0,
-      series_id: 0,
-      course_id: b.id_curso || 0,
-      department_id: b.id_departamento || 0,
-      room_capacity: aula?.aforo || 0,
-      enrollment: grupo?.matriculados_proyectados || 0,
-      room_shared: aula?.es_compartida || false,
-      group_id: b.id_grupo,
-      component_type: b.tipo_componente || '',
-      course_hours_teoria: grupo?.horas_teoria || 0,
-      course_hours_practica: grupo?.horas_practica || 0
-    }))
-
-    const proposed = {
-      id: 0,
-      teacher_id: grupo?.id_docente || 0,
-      day: bloqueForm.value.dia_semana,
-      start_slot: bloqueForm.value.slot_inicio,
-      end_slot: bloqueForm.value.slot_fin,
-      room_id: parseInt(bloqueForm.value.id_aula),
-      school_id: selectedHorario.value.id_escuela,
-      pavilion_id: aula?.id_pabellon || 0,
-      series_id: 0,
-      course_id: grupo?.id_curso || 0,
-      department_id: grupo?.id_departamento || 0,
-      room_capacity: aula?.aforo || 0,
-      enrollment: grupo?.matriculados_proyectados || 0,
-      room_shared: aula?.es_compartida || false,
-      group_id: parseInt(bloqueForm.value.id_grupo),
-      component_type: grupo?.tipo_componente || '',
-      course_hours_teoria: grupo?.horas_teoria || 0,
-      course_hours_practica: grupo?.horas_practica || 0
-    }
-
-    const result = await api.validaciones.placement({
-      proposed,
-      existing: existingBloques,
-      state: selectedHorario.value.estado
+    const result = await api.bloques.verificar({
+      id_horario: selectedHorario.value.id_horario,
+      id_grupo: parseInt(bloqueForm.value.id_grupo),
+      id_docente: grupo?.id_docente || null,
+      id_aula: parseInt(bloqueForm.value.id_aula),
+      dia_semana: bloqueForm.value.dia_semana,
+      slot_inicio: bloqueForm.value.slot_inicio,
+      slot_fin: bloqueForm.value.slot_fin
     })
 
-    if (result.findings && result.findings.length > 0) {
-      conflictoError.value = result.findings.map(f => ({
-        tipo: f.rule,
-        mensaje: f.message,
-        severity: f.severity.toLowerCase()
+    if (result.tiene_conflicto) {
+      conflictoError.value = result.conflictos.map(f => ({
+        tipo: f.tipo,
+        mensaje: f.mensaje,
+        severity: 'blocker'
       }))
     } else {
       alert('No hay conflictos. El bloque puede crearse.')
