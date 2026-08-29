@@ -55,7 +55,7 @@
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
             </svg>
             Cargas
-            <span class="tab-count">{{ cargas.length }}</span>
+            <span class="tab-count">{{ cargas?.length || 0 }}</span>
           </button>
           <button class="tab" :class="{ active: activeTab === 'docentes' }" @click="activeTab = 'docentes'; loadResumenDocentes()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -152,7 +152,7 @@
             </div>
 
             <div class="grupos-list">
-              <div v-if="!carga.grupos || carga.grupos.length === 0" class="no-grupos">
+              <div v-if="!carga.grupos?.length" class="no-grupos">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="8" x2="12" y2="12"/>
@@ -160,7 +160,7 @@
                 </svg>
                 Sin grupos asignados
               </div>
-              <div v-for="grupo in carga.grupos" :key="grupo.id_grupo" class="grupo-item">
+              <div v-for="grupo in (carga.grupos || [])" :key="grupo.id_grupo" class="grupo-item">
                 <div class="grupo-info">
                   <span class="grupo-codigo">{{ grupo.codigo_grupo }}</span>
                   <span class="tipo-badge" :class="grupo.tipo_componente">{{ grupo.tipo_componente }}</span>
@@ -456,7 +456,7 @@
             <label class="form-label">Curso</label>
             <select v-model="nuevaCargaForm.id_curso" class="form-input">
               <option value="">-- Seleccionar curso --</option>
-              <option v-for="c in cursosDisponibles" :key="c.id_curso" :value="c.id_curso">
+              <option v-for="c in cursosFiltrados" :key="c.id_curso" :value="c.id_curso">
                 {{ c.codigo }} - {{ c.nombre }}
               </option>
             </select>
@@ -498,6 +498,11 @@ import api from '../services/api'
 const gruposTeoriaDisponibles = computed(() => {
   if (!selectedCarga.value?.grupos) return []
   return selectedCarga.value.grupos.filter(g => g.tipo_componente === 'TEORIA')
+})
+
+const cursosFiltrados = computed(() => {
+  if (!nuevaCargaForm.value.id_escuela) return cursosDisponibles.value
+  return cursosDisponibles.value.filter(c => c.id_escuela === Number(nuevaCargaForm.value.id_escuela))
 })
 
 const activeTab = ref('cargas')
@@ -571,8 +576,9 @@ async function loadCargas() {
   error.value = ''
   try {
     const params = new URLSearchParams()
-    if (selectedPeriodo.value) {
-      params.append('periodo', selectedPeriodo.value)
+    const periodo = selectedPeriodo.value === 'todos' ? '' : selectedPeriodo.value
+    if (periodo) {
+      params.append('periodo', periodo)
     }
     if (selectedEscuela.value) {
       params.append('escuela', selectedEscuela.value)
@@ -837,7 +843,7 @@ onMounted(() => {
 <style scoped>
 .carga-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 50%, #f0fdf4 100%);
+  background: var(--bg-primary);
 }
 
 .page-header {
@@ -884,8 +890,8 @@ onMounted(() => {
 }
 
 .filter-select option {
-  color: #1e293b;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 .btn {
@@ -899,7 +905,7 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.3s;
   border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .btn-secondary {
@@ -931,28 +937,28 @@ onMounted(() => {
 .btn-icon {
   background: transparent;
   border: none;
-  color: #64748b;
+  color: var(--text-secondary);
   padding: 8px;
   border-radius: 8px;
 }
 
 .btn-icon:hover {
-  background: #f1f5f9;
+  background: var(--hover-bg);
 }
 
 .btn-icon-sm {
-  background: #f1f5f9;
+  background: var(--hover-bg);
   border: none;
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 
 .btn-icon-sm:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: var(--border-color);
+  color: var(--text-primary);
 }
 
 .page-content {
@@ -966,10 +972,10 @@ onMounted(() => {
 .tabs {
   display: flex;
   gap: 8px;
-  background: white;
+  background: var(--bg-secondary);
   padding: 8px;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 16px var(--shadow);
 }
 
 .tab {
@@ -982,13 +988,13 @@ onMounted(() => {
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .tab:hover {
-  background: #f0f4ff;
+  background: var(--hover-bg);
   color: #f5576c;
 }
 
@@ -1015,7 +1021,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 80px 20px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .spinner-lg {
@@ -1037,7 +1043,7 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
   border-left: 4px solid #ef4444;
@@ -1052,15 +1058,15 @@ onMounted(() => {
   justify-content: center;
   padding: 80px 20px;
   text-align: center;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 24px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px var(--shadow);
 }
 
 .empty-icon {
   width: 120px;
   height: 120px;
-  background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 100%);
+  background: var(--bg-tertiary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1071,12 +1077,12 @@ onMounted(() => {
 
 .empty-state h2 {
   font-size: 1.5rem;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0 0 8px;
 }
 
 .empty-state p {
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -1087,9 +1093,9 @@ onMounted(() => {
 }
 
 .carga-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px var(--shadow);
   overflow: hidden;
   transition: all 0.3s;
   border: 2px solid transparent;
@@ -1097,7 +1103,7 @@ onMounted(() => {
 
 .carga-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 40px var(--shadow);
 }
 
 .carga-card.autorizado {
@@ -1106,8 +1112,8 @@ onMounted(() => {
 
 .carga-header {
   padding: 16px 20px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1154,7 +1160,7 @@ onMounted(() => {
 
 .escuela-tag {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .carga-curso {
@@ -1175,7 +1181,7 @@ onMounted(() => {
 .curso-nombre {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0 0 10px;
 }
 
@@ -1183,7 +1189,7 @@ onMounted(() => {
   display: flex;
   gap: 16px;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .meta-item {
@@ -1210,20 +1216,20 @@ onMounted(() => {
   justify-content: center;
   gap: 8px;
   padding: 24px;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-style: italic;
-  background: #f8fafc;
+  background: var(--bg-tertiary);
   border-radius: 12px;
 }
 
 .grupo-item {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
   border-radius: 12px;
   padding: 14px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .grupo-info {
@@ -1235,7 +1241,7 @@ onMounted(() => {
 
 .grupo-codigo {
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .tipo-badge {
@@ -1273,7 +1279,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #334155;
+  color: var(--text-primary);
   font-size: 0.85rem;
 }
 
@@ -1293,16 +1299,16 @@ onMounted(() => {
 }
 
 .docente-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px var(--shadow);
   padding: 20px;
   transition: all 0.3s;
 }
 
 .docente-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 40px var(--shadow);
 }
 
 .docente-header {
@@ -1328,13 +1334,13 @@ onMounted(() => {
 .docente-info h3 {
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
   margin: 0 0 2px;
 }
 
 .docente-plaza {
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-family: monospace;
 }
 
@@ -1350,7 +1356,7 @@ onMounted(() => {
 
 .horas-label {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .horas-value {
@@ -1365,7 +1371,7 @@ onMounted(() => {
 
 .progress-bar {
   height: 10px;
-  background: #e2e8f0;
+  background: var(--border-color);
   border-radius: 5px;
   overflow: hidden;
 }
@@ -1399,14 +1405,14 @@ onMounted(() => {
 }
 
 .cursos-list {
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
   padding-top: 14px;
 }
 
 .cursos-list h4 {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin: 0 0 10px;
@@ -1432,7 +1438,7 @@ onMounted(() => {
 
 .curso-item-nombre {
   flex: 1;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .curso-item-horas {
@@ -1452,7 +1458,7 @@ onMounted(() => {
 }
 
 .modal {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 24px;
   width: 100%;
   max-width: 560px;
@@ -1467,11 +1473,11 @@ onMounted(() => {
 
 .modal-header {
   padding: 24px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
 }
 
 .modal-header h2 {
@@ -1480,7 +1486,7 @@ onMounted(() => {
   gap: 12px;
   margin: 0;
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .modal-body {
@@ -1491,15 +1497,15 @@ onMounted(() => {
 
 .modal-footer {
   padding: 20px 24px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
 }
 
 .selected-curso {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
   padding: 14px 18px;
   border-radius: 12px;
   margin-bottom: 20px;
@@ -1507,6 +1513,7 @@ onMounted(() => {
   gap: 12px;
   align-items: center;
   font-size: 0.9rem;
+  color: var(--text-primary);
 }
 
 .selected-curso .curso-codigo {
@@ -1530,18 +1537,20 @@ onMounted(() => {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   font-size: 0.95rem;
   transition: all 0.3s;
   box-sizing: border-box;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .form-input:focus {
@@ -1554,7 +1563,7 @@ onMounted(() => {
   display: block;
   margin-top: 6px;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .text-danger {
@@ -1567,7 +1576,7 @@ onMounted(() => {
   gap: 10px;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .checkbox-label input {
@@ -1577,7 +1586,7 @@ onMounted(() => {
 .checkbox-custom {
   width: 20px;
   height: 20px;
-  border: 2px solid #d1d5db;
+  border: 2px solid var(--border-color);
   border-radius: 6px;
   transition: all 0.2s;
   position: relative;
@@ -1600,7 +1609,7 @@ onMounted(() => {
 }
 
 .bloques-info {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
   border-radius: 12px;
   padding: 14px;
   max-height: 160px;
@@ -1612,10 +1621,11 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 10px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 8px;
   margin-bottom: 8px;
   font-size: 0.85rem;
+  color: var(--text-primary);
 }
 
 .bloque-item:last-child {
@@ -1633,7 +1643,7 @@ onMounted(() => {
 
 .bloque-escuela {
   flex: 1;
-  color: #64748b;
+  color: var(--text-secondary);
   font-size: 0.75rem;
   white-space: nowrap;
   overflow: hidden;
@@ -1641,16 +1651,16 @@ onMounted(() => {
 }
 
 .bloque-dia {
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .bloque-hora {
-  background: #e2e8f0;
+  background: var(--border-color);
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 0.75rem;
-  color: #475569;
+  color: var(--text-primary);
 }
 
 .spin {
@@ -1697,7 +1707,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
   padding: 10px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 8px;
   margin-bottom: 8px;
   border-left: 4px solid #f59e0b;
@@ -1715,14 +1725,14 @@ onMounted(() => {
 .warning-rule {
   font-size: 0.7rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .warning-message {
   font-size: 0.9rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .success-box {

@@ -285,7 +285,7 @@ onMounted(loadStats)
 <style scoped>
 .dashboard-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 50%, #f0fdf4 100%);
+  background: var(--bg-primary);
 }
 
 .page-header {
@@ -354,7 +354,7 @@ onMounted(loadStats)
 }
 
 .stat-card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 20px;
   padding: 24px;
   display: flex;
@@ -362,14 +362,14 @@ onMounted(loadStats)
   gap: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 8px 32px var(--shadow);
+  border: 1px solid var(--border-color);
   transition: all 0.3s;
 }
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 40px var(--shadow);
 }
 
 .stat-icon-wrapper {
@@ -403,6 +403,7 @@ onMounted(loadStats)
   font-weight: 700;
   line-height: 1;
   margin-bottom: 4px;
+  color: var(--text-primary);
 }
 
 .stat-card-purple .stat-value { color: #667eea; }
@@ -412,7 +413,7 @@ onMounted(loadStats)
 
 .stat-label {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -438,10 +439,10 @@ onMounted(loadStats)
 }
 
 .card {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 8px 32px var(--shadow);
+  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -459,8 +460,8 @@ onMounted(loadStats)
 
 .card-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #f1f5f9;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
 }
 
 .card-title {
@@ -469,7 +470,7 @@ onMounted(loadStats)
   gap: 10px;
   margin: 0;
   font-size: 1.1rem;
-  color: #1e293b;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -487,19 +488,19 @@ onMounted(loadStats)
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
   border-radius: 12px;
 }
 
 .info-label {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .info-value {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .version-badge {
@@ -529,7 +530,7 @@ onMounted(loadStats)
   text-align: center;
   padding: 24px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
   border: 2px solid transparent;
   transition: all 0.3s;
   text-decoration: none;
@@ -537,7 +538,7 @@ onMounted(loadStats)
 
 .action-btn:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px var(--shadow);
 }
 
 .action-btn-purple:hover { border-color: #667eea; background: linear-gradient(135deg, #667eea10, #764ba210); }
@@ -564,13 +565,13 @@ onMounted(loadStats)
 .action-label {
   font-size: 1rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .action-desc {
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .rules-list {
@@ -584,7 +585,7 @@ onMounted(loadStats)
   flex-direction: column;
   padding: 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
   border-left: 4px solid;
 }
 
@@ -611,14 +612,14 @@ onMounted(loadStats)
   display: block;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .rule-desc {
   display: block;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-secondary);
   line-height: 1.3;
 }
 
@@ -669,4 +670,8 @@ onMounted(loadStats)
     margin: 4px 0 0 0;
   }
 }
+
+[data-theme="dark"] .severity-blocker { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+[data-theme="dark"] .severity-warning { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+[data-theme="dark"] .severity-info { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
 </style>

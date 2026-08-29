@@ -3,26 +3,30 @@ package catalog
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type RepositoryInterface interface {
 	ListFacultades(ctx context.Context) ([]Facultad, error)
+	CreateFacultad(ctx context.Context, nombre string) (*Facultad, error)
+	UpdateFacultad(ctx context.Context, id int, nombre string) (*Facultad, error)
+	DeleteFacultad(ctx context.Context, id int) error
 	ListDepartamentos(ctx context.Context) ([]Departamento, error)
 	ListEscuelas(ctx context.Context) ([]Escuela, error)
 	ListAulas(ctx context.Context) ([]Aula, error)
 	ListUsuarios(ctx context.Context) ([]Usuario, error)
 	ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error)
 	ListSeries(ctx context.Context) ([]Serie, error)
-	ListCursos(ctx context.Context) ([]Curso, error)
+	ListCursos(ctx context.Context, idEscuela int) ([]Curso, error)
 	ListDocentes(ctx context.Context) ([]Docente, error)
 	ListPeriodos(ctx context.Context) ([]PeriodoAcademico, error)
 	ListSesionesDepartamento(ctx context.Context) ([]SesionDepartamento, error)
 	ListLocales(ctx context.Context) ([]Local, error)
 	ListPabellones(ctx context.Context) ([]Pabellon, error)
 	ListDistancias(ctx context.Context) ([]Distancia, error)
-	ListCargasAcademicas(ctx context.Context) ([]CargaAcademica, error)
+	ListCargasAcademicas(ctx context.Context, periodo, escuela string) ([]CargaAcademica, error)
 	ListGrupos(ctx context.Context) ([]Grupo, error)
 	ListHorarios(ctx context.Context) ([]Horario, error)
 	ListBloquesHorario(ctx context.Context) ([]BloqueHorario, error)
@@ -34,6 +38,9 @@ type RepositoryInterface interface {
 	DeleteBloque(ctx context.Context, id int) error
 	GetBloquesByHorario(ctx context.Context, idHorario int) ([]BloqueContexto, error)
 	GetGruposParaHorario(ctx context.Context, idEscuela int, idPeriodo int, idSerie *int, semestre *string) ([]GrupoInfo, error)
+	CreateDepartamento(ctx context.Context, idFacultad int, nombre string) (*Departamento, error)
+	UpdateDepartamento(ctx context.Context, id int, idFacultad int, nombre string) (*Departamento, error)
+	DeleteDepartamento(ctx context.Context, id int) error
 }
 
 type Repository struct {
@@ -61,6 +68,40 @@ func (r Repository) ListFacultades(ctx context.Context) ([]Facultad, error) {
 	}
 
 	return items, rows.Err()
+}
+
+func (r Repository) CreateFacultad(ctx context.Context, nombre string) (*Facultad, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `INSERT INTO facultad (nombre) VALUES ($1) RETURNING id_facultad`, nombre).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var f Facultad
+	err = r.db.QueryRow(ctx, `SELECT id_facultad, nombre FROM facultad WHERE id_facultad = $1`, id).Scan(&f.ID, &f.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &f, nil
+}
+
+func (r Repository) UpdateFacultad(ctx context.Context, id int, nombre string) (*Facultad, error) {
+	_, err := r.db.Exec(ctx, `UPDATE facultad SET nombre = $1 WHERE id_facultad = $2`, nombre, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var f Facultad
+	err = r.db.QueryRow(ctx, `SELECT id_facultad, nombre FROM facultad WHERE id_facultad = $1`, id).Scan(&f.ID, &f.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &f, nil
+}
+
+func (r Repository) DeleteFacultad(ctx context.Context, id int) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM facultad WHERE id_facultad = $1`, id)
+	return err
 }
 
 func (r Repository) ListDepartamentos(ctx context.Context) ([]Departamento, error) {
@@ -162,7 +203,7 @@ func (r Repository) ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error
 }
 
 func (r Repository) ListSeries(ctx context.Context) ([]Serie, error) {
-	rows, err := r.db.Query(ctx, `SELECT id_serie, id_plan, numero_ciclo FROM serie ORDER BY id_plan, numero_ciclo`)
+	rows, err := r.db.Query(ctx, `SELECT id_serie, id_plan, numero_ciclo, subciclo FROM serie ORDER BY id_plan, numero_ciclo, subciclo`)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +212,7 @@ func (r Repository) ListSeries(ctx context.Context) ([]Serie, error) {
 	items := make([]Serie, 0)
 	for rows.Next() {
 		var item Serie
-		if err := rows.Scan(&item.ID, &item.IDPlan, &item.NumeroCiclo); err != nil {
+		if err := rows.Scan(&item.ID, &item.IDPlan, &item.NumeroCiclo, &item.Subciclo); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -180,8 +221,23 @@ func (r Repository) ListSeries(ctx context.Context) ([]Serie, error) {
 	return items, rows.Err()
 }
 
-func (r Repository) ListCursos(ctx context.Context) ([]Curso, error) {
-	rows, err := r.db.Query(ctx, `SELECT id_curso, id_serie, codigo, nombre, creditos, horas_teoria, horas_practica FROM curso ORDER BY codigo`)
+func (r Repository) ListCursos(ctx context.Context, idEscuela int) ([]Curso, error) {
+	query := `
+		SELECT c.id_curso, c.id_serie, c.codigo, c.nombre, c.creditos, c.horas_teoria, c.horas_practica,
+		       e.id_escuela, e.nombre as escuela_nombre
+		FROM curso c
+		JOIN serie s ON s.id_serie = c.id_serie
+		JOIN plan_estudio p ON p.id_plan = s.id_plan
+		JOIN escuela_profesional e ON e.id_escuela = p.id_escuela
+	`
+	var args []interface{}
+	if idEscuela > 0 {
+		query += ` WHERE e.id_escuela = $1`
+		args = append(args, idEscuela)
+	}
+	query += ` ORDER BY e.nombre, c.codigo`
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +246,7 @@ func (r Repository) ListCursos(ctx context.Context) ([]Curso, error) {
 	items := make([]Curso, 0)
 	for rows.Next() {
 		var item Curso
-		if err := rows.Scan(&item.ID, &item.IDSerie, &item.Codigo, &item.Nombre, &item.Creditos, &item.HorasTeoria, &item.HorasPractica); err != nil {
+		if err := rows.Scan(&item.ID, &item.IDSerie, &item.Codigo, &item.Nombre, &item.Creditos, &item.HorasTeoria, &item.HorasPractica, &item.IDEscuela, &item.EscuelaNombre); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
@@ -313,8 +369,27 @@ func (r Repository) ListDistancias(ctx context.Context) ([]Distancia, error) {
 	return items, rows.Err()
 }
 
-func (r Repository) ListCargasAcademicas(ctx context.Context) ([]CargaAcademica, error) {
-	rows, err := r.db.Query(ctx, `SELECT id_carga, id_curso, id_periodo, id_escuela, estado, fecha_aprobacion FROM carga_academica ORDER BY id_periodo, id_escuela`)
+func (r Repository) ListCargasAcademicas(ctx context.Context, periodo, escuela string) ([]CargaAcademica, error) {
+	query := `SELECT id_carga, id_curso, id_periodo, id_escuela, estado, fecha_aprobacion FROM carga_academica WHERE 1=1`
+	var args []interface{}
+	argNum := 1
+
+	if periodo != "" {
+		query += ` AND id_periodo = $` + strconv.Itoa(argNum)
+		args = append(args, periodo)
+		argNum++
+	}
+	if escuela != "" {
+		escuelaInt, err := strconv.Atoi(escuela)
+		if err == nil {
+			query += ` AND id_escuela = $` + strconv.Itoa(argNum)
+			args = append(args, escuelaInt)
+		}
+	}
+
+	query += ` ORDER BY id_periodo, id_escuela`
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -631,4 +706,48 @@ type GrupoInfo struct {
 	NombreCurso   string  `json:"nombre_curso"`
 	HorasTeoria   int     `json:"horas_teoria"`
 	HorasPractica int     `json:"horas_practica"`
+}
+
+func (r Repository) CreateDepartamento(ctx context.Context, idFacultad int, nombre string) (*Departamento, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO departamento_academico (id_facultad, nombre)
+		VALUES ($1, $2)
+		RETURNING id_departamento
+	`, idFacultad, nombre).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var d Departamento
+	err = r.db.QueryRow(ctx, `
+		SELECT id_departamento, id_facultad, nombre FROM departamento_academico WHERE id_departamento = $1
+	`, id).Scan(&d.ID, &d.IDFacultad, &d.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (r Repository) UpdateDepartamento(ctx context.Context, id int, idFacultad int, nombre string) (*Departamento, error) {
+	_, err := r.db.Exec(ctx, `
+		UPDATE departamento_academico SET id_facultad = $1, nombre = $2 WHERE id_departamento = $3
+	`, idFacultad, nombre, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var d Departamento
+	err = r.db.QueryRow(ctx, `
+		SELECT id_departamento, id_facultad, nombre FROM departamento_academico WHERE id_departamento = $1
+	`, id).Scan(&d.ID, &d.IDFacultad, &d.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (r Repository) DeleteDepartamento(ctx context.Context, id int) error {
+	_, err := r.db.Exec(ctx, `DELETE FROM departamento_academico WHERE id_departamento = $1`, id)
+	return err
 }

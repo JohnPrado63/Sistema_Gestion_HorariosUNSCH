@@ -63,11 +63,12 @@ CREATE TABLE serie (
 CREATE TABLE curso (
     id_curso SERIAL PRIMARY KEY,
     id_serie INT NOT NULL REFERENCES serie(id_serie) ON DELETE RESTRICT,
-    codigo VARCHAR(20) NOT NULL UNIQUE,
+    codigo VARCHAR(20) NOT NULL,
     nombre VARCHAR(150) NOT NULL,
     creditos INT NOT NULL CHECK (creditos > 0),
     horas_teoria INT NOT NULL DEFAULT 0 CHECK (horas_teoria >= 0),
     horas_practica INT NOT NULL DEFAULT 0 CHECK (horas_practica >= 0),
+    CONSTRAINT uk_curso_serie UNIQUE (id_serie, codigo),
     CONSTRAINT chk_horas_minimas CHECK (horas_teoria + horas_practica > 0)
 );
 

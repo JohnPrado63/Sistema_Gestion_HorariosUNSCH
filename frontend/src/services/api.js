@@ -56,6 +56,9 @@ export const api = {
   facultades: {
     list: () => api.get('/facultades'),
     get: (id) => api.get(`/facultades/${id}`),
+    create: (data) => api.post('/facultades', data),
+    update: (id, data) => api.put(`/facultades/${id}`, data),
+    delete: (id) => api.delete(`/facultades/${id}`),
     departamentos: (id) => api.get(`/facultades/${id}/departamentos`),
     escuelas: (id) => api.get(`/facultades/${id}/escuelas`)
   },
@@ -63,6 +66,9 @@ export const api = {
   departamentos: {
     list: () => api.get('/departamentos'),
     get: (id) => api.get(`/departamentos/${id}`),
+    create: (data) => api.post('/departamentos', data),
+    update: (id, data) => api.put(`/departamentos/${id}`, data),
+    delete: (id) => api.delete(`/departamentos/${id}`),
     docentes: (id) => api.get(`/departamentos/${id}/docentes`),
     escuelas: (id) => api.get(`/departamentos/${id}/escuelas`)
   },

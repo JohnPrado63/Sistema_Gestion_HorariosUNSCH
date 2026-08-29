@@ -11,12 +11,17 @@ INSERT INTO periodo_academico (codigo, activo) VALUES ('2026-II', false);
 
 -- 2. Estructura Institucional
 INSERT INTO facultad (nombre) VALUES ('Facultad de Ingeniería de Minas, Geología y Civil');
+INSERT INTO facultad (nombre) VALUES ('Facultad de Ciencias Administrativas, Económicas y Contables');
 
 INSERT INTO departamento_academico (id_facultad, nombre)
 VALUES (1, 'Departamento Académico de Ingeniería de Sistemas');
+INSERT INTO departamento_academico (id_facultad, nombre)
+VALUES (2, 'Ciencias Económicas Administrativas');
 
 INSERT INTO escuela_profesional (id_facultad, id_departamento, nombre)
 VALUES (1, 1, 'Escuela Profesional de Ingeniería de Sistemas');
+INSERT INTO escuela_profesional (id_facultad, id_departamento, nombre)
+VALUES (2, 2, 'Administración de Empresas');
 
 -- 3. Infraestructura
 INSERT INTO local (nombre) VALUES ('Ciudad Universitaria');
@@ -56,6 +61,13 @@ INSERT INTO docente (id_departamento, codigo_plaza, nombres, apellidos, email) V
 (1, 'DNI-004', 'Ana', 'García Ruiz', 'ana.garcia@unsch.edu.pe'),
 (1, 'DNI-005', 'Luis', 'Ramírez Santos', 'luis.ramirez@unsch.edu.pe'),
 (1, 'DNI-006', 'Elena', 'Castro Morales', 'elena.castro@unsch.edu.pe');
+
+-- Docentes del Departamento de Administración (id_departamento = 2)
+INSERT INTO docente (id_departamento, codigo_plaza, nombres, apellidos, email) VALUES
+(2, 'DNI-101', 'Roberto', 'Fernández Díaz', 'roberto.fernandez@unsch.edu.pe'),
+(2, 'DNI-102', 'Carmen', 'Vega Mendoza', 'carmen.vega@unsch.edu.pe'),
+(2, 'DNI-103', 'Pedro', 'Sánchez Paredes', 'pedro.sanchez@unsch.edu.pe'),
+(2, 'DNI-104', 'Lucía', 'Torres Jiménez', 'lucia.torres@unsch.edu.pe');
 
 -- 6. Plan de Estudios, Series y Cursos (para Ingeniería de Sistemas)
 INSERT INTO plan_estudio (id_escuela, codigo_plan, nombre) VALUES

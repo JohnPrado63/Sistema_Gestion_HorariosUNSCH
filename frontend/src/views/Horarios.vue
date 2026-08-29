@@ -245,8 +245,8 @@
             <label class="form-label">Serie</label>
             <select v-model="horarioForm.id_serie" class="form-input">
               <option value="">-- Seleccionar --</option>
-              <option v-for="s in series" :key="s.id_serie" :value="s.id_serie">
-                {{ s.numero_ciclo }} - {{ getSerieDescripcion(s.numero_ciclo) }}
+              <option v-for="s in getSeriesFiltradas()" :key="s.id_serie" :value="s.id_serie">
+                {{ s.numero_ciclo }}-{{ Number(s.subciclo) === 1 ? 'I' : 'II' }}
               </option>
             </select>
           </div>
@@ -406,6 +406,7 @@ const escuelas = ref([])
 const series = ref([])
 const aulas = ref([])
 const gruposDisponibles = ref([])
+const plans = ref([])
 
 const selectedPeriodo = ref('')
 const selectedEscuela = ref('')
@@ -441,6 +442,26 @@ const aulasDisponibles = computed(() => {
   return aulas.value.filter(a => a.id_aula === parseInt(filtroAula.value))
 })
 
+function getSeriesFiltradas() {
+  const result = []
+  const seen = new Set()
+  if (!horarioForm.value.id_escuela) return result
+  const escuelaId = Number(horarioForm.value.id_escuela)
+  for (const s of series.value) {
+    if (seen.has(s.id_serie)) continue
+    const plan = plans.value.find(p => p.id_plan === s.id_plan)
+    if (plan && plan.id_escuela === escuelaId) {
+      seen.add(s.id_serie)
+      result.push(s)
+    }
+  }
+  return result
+}
+
+watch(() => horarioForm.value.id_escuela, () => {
+  horarioForm.value.id_serie = ''
+})
+
 const serieAulaMap = {
   100: 'H-202',
   200: 'H-203',
@@ -470,16 +491,28 @@ function formatHora(slot) {
 
 async function loadCatalogos() {
   try {
-    const [p, e, s, a] = await Promise.all([
+    const [p, e, s, a, pl] = await Promise.all([
       api.periodos.list(),
       api.escuelas.list(),
       api.series.list(),
-      api.aulas.list()
+      api.aulas.list(),
+      api.get('/planes-estudio')
     ])
     periodos.value = p
     escuelas.value = e
-    series.value = s
+    const seenSeries = new Set()
+    series.value = s.filter(ser => {
+      if (seenSeries.has(ser.id_serie)) return false
+      seenSeries.add(ser.id_serie)
+      return true
+    })
     aulas.value = a
+    const seenPlans = new Set()
+    plans.value = pl.filter(plan => {
+      if (seenPlans.has(plan.id_plan)) return false
+      seenPlans.add(plan.id_plan)
+      return true
+    })
 
     if (!selectedPeriodo.value) {
       const activo = p.find(x => x.activo)
@@ -958,7 +991,7 @@ onMounted(() => {
 <style scoped>
 .horarios-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 50%, #f0fdf4 100%);
+  background: var(--bg-primary);
 }
 
 .page-header {
@@ -1004,8 +1037,8 @@ onMounted(() => {
 }
 
 .filter-select option {
-  color: #1e293b;
-  background: white;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
 }
 
 .page-content {
@@ -1024,7 +1057,7 @@ onMounted(() => {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #e2e8f0;
+  border: 4px solid var(--border-color);
   border-top-color: #667eea;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -1050,7 +1083,7 @@ onMounted(() => {
 }
 
 .horario-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-secondary);
   border: 2px solid transparent;
   border-radius: 14px;
   padding: 16px;
@@ -1084,8 +1117,8 @@ onMounted(() => {
 .horario-id {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
-  background: #e2e8f0;
+  color: var(--text-secondary);
+  background: var(--border-color);
   padding: 2px 8px;
   border-radius: 6px;
   font-family: monospace;
@@ -1169,11 +1202,11 @@ onMounted(() => {
 
 .card-header {
   padding: 20px 24px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
 }
 
 .grilla-header-left {
@@ -1185,7 +1218,7 @@ onMounted(() => {
 .grilla-header-left .card-title {
   margin: 0;
   font-size: 1.1rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .escuela-badge {
@@ -1215,10 +1248,11 @@ onMounted(() => {
 .filter-aula {
   width: 180px;
   padding: 8px 12px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
   font-size: 0.85rem;
-  background: white;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .grilla-wrapper {
@@ -1234,14 +1268,14 @@ onMounted(() => {
 
 .hora-header {
   width: 80px;
-  background: #f1f5f9;
+  background: var(--bg-tertiary);
   padding: 12px 8px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
   text-align: center;
 }
 
@@ -1251,7 +1285,7 @@ onMounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--border-color);
   text-align: center;
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
@@ -1261,9 +1295,9 @@ onMounted(() => {
 
 .hora-cell {
   padding: 0;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  border-right: 1px solid #e2e8f0;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
   vertical-align: top;
 }
 
@@ -1272,26 +1306,27 @@ onMounted(() => {
   padding: 8px 8px 2px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .hora-cell .hora-fin {
   display: block;
   padding: 0 8px 8px;
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .dia-cell {
   height: 70px;
   width: 16.66%;
   min-width: 150px;
-  border-bottom: 1px solid #e2e8f0;
-  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
   padding: 0;
   position: relative;
   vertical-align: top;
   overflow: hidden;
+  background: var(--bg-secondary);
 }
 
 .dia-cell.has-event {
@@ -1457,8 +1492,8 @@ onMounted(() => {
   justify-content: center;
   gap: 24px;
   padding: 16px;
-  background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-color);
 }
 
 .legend-item {
@@ -1466,7 +1501,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .legend-color {
@@ -1500,18 +1535,19 @@ onMounted(() => {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .form-input {
   width: 100%;
   padding: 12px 14px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
   font-size: 0.9rem;
   transition: all 0.2s;
-  background: white;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   box-sizing: border-box;
 }
 
@@ -1531,7 +1567,7 @@ onMounted(() => {
   gap: 10px;
   cursor: pointer;
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--text-primary);
 }
 
 .checkbox-label input {

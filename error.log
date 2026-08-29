@@ -1,0 +1,7 @@
+2026/08/28 17:07:06 config: checking .env at D:\JOHN\OTI\backend\.env
+2026/08/28 17:07:06 config: checking .env at D:\JOHN\OTI\.env
+2026/08/28 17:07:06 config: .env found, attempting load...
+2026/08/28 17:07:06 config: loaded .env from D:\JOHN\OTI\.env
+2026/08/28 17:07:06 auth: Redis connected successfully
+2026/08/28 17:07:06 frontend: using ../frontend/dist
+2026/08/28 17:07:06 api listening on http://localhost:8080

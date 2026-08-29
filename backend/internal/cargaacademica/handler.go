@@ -34,6 +34,8 @@ func (h *Handler) ListCargas(c *gin.Context) {
 
 	if idEscuela > 0 && idPeriodo > 0 {
 		cargas, err = h.repo.ListCargasByEscuela(c.Request.Context(), idEscuela, idPeriodo)
+	} else if idEscuela > 0 {
+		cargas, err = h.repo.ListCargasByEscuela(c.Request.Context(), idEscuela, 0)
 	} else if idPeriodo > 0 {
 		cargas, err = h.repo.ListCargasByPeriodo(c.Request.Context(), idPeriodo)
 	} else {

@@ -78,16 +78,24 @@ func (r *Repository) ListCargasByPeriodo(ctx context.Context, idPeriodo int) ([]
 }
 
 func (r *Repository) ListCargasByEscuela(ctx context.Context, idEscuela, idPeriodo int) ([]CargaAcademica, error) {
-	rows, err := r.db.Query(ctx, `
+	query := `
 		SELECT ca.id_carga, ca.id_curso, ca.id_periodo, ca.id_escuela, ca.estado, COALESCE(ca.fecha_aprobacion::text, ''),
 		       c.codigo, c.nombre, c.horas_teoria, c.horas_practica, c.creditos,
 		       e.nombre
 		FROM carga_academica ca
 		JOIN curso c ON c.id_curso = ca.id_curso
 		JOIN escuela_profesional e ON e.id_escuela = ca.id_escuela
-		WHERE ca.id_escuela = $1 AND ca.id_periodo = $2
-		ORDER BY c.codigo
-	`, idEscuela, idPeriodo)
+		WHERE ca.id_escuela = $1`
+	args := []interface{}{idEscuela}
+
+	if idPeriodo > 0 {
+		query += ` AND ca.id_periodo = $2`
+		args = append(args, idPeriodo)
+	}
+
+	query += ` ORDER BY c.codigo`
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

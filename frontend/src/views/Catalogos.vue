@@ -94,8 +94,17 @@
       <template v-else>
         <div v-show="activeTab === 'facultades'" class="tab-content">
           <div class="content-header">
-            <h2>Facultades</h2>
-            <p>Listado de facultades registradas en el sistema</p>
+            <div>
+              <h2>Facultades</h2>
+              <p>Listado de facultades registradas en el sistema</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevaFacultad">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nueva Facultad
+            </button>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -121,16 +130,16 @@
                     </div>
                   </td>
                   <td class="actions-cell">
-                    <button class="btn btn-icon-sm" title="Ver detalle">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                        <circle cx="12" cy="12" r="3"/>
-                      </svg>
-                    </button>
-                    <button class="btn btn-icon-sm" title="Editar">
+                    <button class="btn btn-icon-sm" @click="openEditarFacultad(item)" title="Editar">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarFacultad(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>
                     </button>
                   </td>
@@ -142,8 +151,17 @@
 
         <div v-show="activeTab === 'departamentos'" class="tab-content">
           <div class="content-header">
-            <h2>Departamentos Académicos</h2>
-            <p>Departamentos organizados por facultad</p>
+            <div>
+              <h2>Departamentos Académicos</h2>
+              <p>Departamentos organizados por facultad</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevoDepartamento">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nuevo Departamento
+            </button>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -172,8 +190,18 @@
                     </div>
                   </td>
                   <td class="actions-cell">
-                    <button class="btn btn-icon-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                    <button class="btn btn-icon-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="btn btn-icon-sm" @click="openEditarDepartamento(item)" title="Editar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarDepartamento(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -261,6 +289,7 @@
                   <th>ID</th>
                   <th>Código</th>
                   <th>Nombre</th>
+                  <th>Escuela</th>
                   <th>Créditos</th>
                   <th>Hrs. Teoría</th>
                   <th>Hrs. Práctica</th>
@@ -271,6 +300,7 @@
                   <td class="id-cell">{{ item.id_curso }}</td>
                   <td><span class="codigo-badge curso-codigo">{{ item.codigo }}</span></td>
                   <td class="fw-600">{{ item.nombre }}</td>
+                  <td><span class="escuela-badge">{{ item.escuela_nombre }}</span></td>
                   <td><span class="creditos-badge">{{ item.creditos }}</span></td>
                   <td>{{ item.horas_teoria }}</td>
                   <td>{{ item.horas_practica }}</td>
@@ -280,6 +310,80 @@
           </div>
         </div>
       </template>
+
+      <!-- Modal Facultad -->
+      <div v-if="showModalFacultad" class="modal-overlay" @click.self="showModalFacultad = false">
+        <div class="modal modal-md">
+          <div class="modal-header">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 21h18"/>
+                <path d="M5 21V7l8-4v18"/>
+              </svg>
+              {{ editingFacultad ? 'Editar' : 'Nueva' }} Facultad
+            </h2>
+            <button class="btn btn-icon" @click="showModalFacultad = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Nombre de la Facultad</label>
+              <input v-model="facultadForm.nombre" type="text" class="form-input" placeholder="Ej: Facultad de Ingeniería">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalFacultad = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarFacultad" :disabled="saving">
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Departamento -->
+      <div v-if="showModalDepartamento" class="modal-overlay" @click.self="showModalDepartamento = false">
+        <div class="modal modal-md">
+          <div class="modal-header">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+              {{ editingDepartamento ? 'Editar' : 'Nuevo' }} Departamento
+            </h2>
+            <button class="btn btn-icon" @click="showModalDepartamento = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Facultad</label>
+              <select v-model="departamentoForm.id_facultad" class="form-input">
+                <option value="">-- Seleccionar facultad --</option>
+                <option v-for="f in catalogos.facultades" :key="f.id_facultad" :value="f.id_facultad">
+                  {{ f.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombre del Departamento</label>
+              <input v-model="departamentoForm.nombre" type="text" class="form-input" placeholder="Ej: Departamento de Ingeniería de Sistemas">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalDepartamento = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarDepartamento" :disabled="saving">
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -291,6 +395,20 @@ import api from '../services/api'
 const activeTab = ref('facultades')
 const loading = ref(true)
 const error = ref('')
+
+const showModalFacultad = ref(false)
+const editingFacultad = ref(null)
+const saving = ref(false)
+const facultadForm = ref({
+  nombre: ''
+})
+
+const showModalDepartamento = ref(false)
+const editingDepartamento = ref(null)
+const departamentoForm = ref({
+  id_facultad: '',
+  nombre: ''
+})
 
 const catalogos = ref({
   facultades: [],
@@ -324,6 +442,98 @@ function refresh() {
   loadAll()
 }
 
+function openNuevaFacultad() {
+  editingFacultad.value = null
+  facultadForm.value = { nombre: '' }
+  showModalFacultad.value = true
+}
+
+function openEditarFacultad(fac) {
+  editingFacultad.value = fac
+  facultadForm.value = { nombre: fac.nombre }
+  showModalFacultad.value = true
+}
+
+async function guardarFacultad() {
+  if (!facultadForm.value.nombre) {
+    alert('Ingresa el nombre de la facultad')
+    return
+  }
+  saving.value = true
+  try {
+    if (editingFacultad.value) {
+      await api.facultades.update(editingFacultad.value.id_facultad, facultadForm.value)
+    } else {
+      await api.facultades.create(facultadForm.value)
+    }
+    showModalFacultad.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarFacultad(fac) {
+  if (!confirm(`¿Eliminar la facultad "${fac.nombre}"?`)) return
+  try {
+    await api.facultades.delete(fac.id_facultad)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+function openNuevoDepartamento() {
+  editingDepartamento.value = null
+  departamentoForm.value = {
+    id_facultad: '',
+    nombre: ''
+  }
+  showModalDepartamento.value = true
+}
+
+function openEditarDepartamento(depto) {
+  editingDepartamento.value = depto
+  departamentoForm.value = {
+    id_facultad: depto.id_facultad,
+    nombre: depto.nombre
+  }
+  showModalDepartamento.value = true
+}
+
+async function guardarDepartamento() {
+  if (!departamentoForm.value.id_facultad || !departamentoForm.value.nombre) {
+    alert('Completa todos los campos')
+    return
+  }
+  saving.value = true
+  try {
+    if (editingDepartamento.value) {
+      await api.departamentos.update(editingDepartamento.value.id_departamento, departamentoForm.value)
+    } else {
+      await api.departamentos.create(departamentoForm.value)
+    }
+    showModalDepartamento.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarDepartamento(depto) {
+  if (!confirm(`¿Eliminar el departamento "${depto.nombre}"?`)) return
+  try {
+    await api.departamentos.delete(depto.id_departamento)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
 function getFacultadNombre(id) {
   const f = catalogos.value.facultades.find(x => x.id_facultad === id)
   return f ? f.nombre : `Facultad #${id}`
@@ -340,7 +550,7 @@ onMounted(loadAll)
 <style scoped>
 .catalogos-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 50%, #f0fdf4 100%);
+  background: var(--bg-primary);
 }
 
 .page-header {
@@ -379,7 +589,7 @@ onMounted(loadAll)
   cursor: pointer;
   transition: all 0.3s;
   border: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 .btn-secondary {
@@ -399,18 +609,18 @@ onMounted(loadAll)
 }
 
 .btn-icon-sm {
-  background: #f1f5f9;
+  background: var(--hover-bg);
   border: none;
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 
 .btn-icon-sm:hover {
-  background: #e2e8f0;
-  color: #1e293b;
+  background: var(--border-color);
+  color: var(--text-primary);
 }
 
 .page-content {
@@ -424,10 +634,10 @@ onMounted(loadAll)
 .tabs {
   display: flex;
   gap: 8px;
-  background: white;
+  background: var(--bg-secondary);
   padding: 8px;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 16px var(--shadow);
   overflow-x: auto;
 }
 
@@ -441,14 +651,14 @@ onMounted(loadAll)
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #64748b;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
   white-space: nowrap;
 }
 
 .tab:hover {
-  background: #f0f4ff;
+  background: var(--hover-bg);
   color: #11998e;
 }
 
@@ -475,7 +685,7 @@ onMounted(loadAll)
   align-items: center;
   justify-content: center;
   padding: 80px 20px;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .spinner-lg {
@@ -497,7 +707,7 @@ onMounted(loadAll)
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
   border-left: 4px solid #ef4444;
@@ -521,21 +731,21 @@ onMounted(loadAll)
 .content-header h2 {
   margin: 0 0 4px;
   font-size: 1.25rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .content-header p {
   margin: 0;
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 .table-container {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 32px var(--shadow);
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid var(--border-color);
 }
 
 .data-table {
@@ -550,16 +760,16 @@ onMounted(loadAll)
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #64748b;
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
-  border-bottom: 2px solid #e2e8f0;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .data-table td {
   padding: 14px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.9rem;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .data-table tr:last-child td {
@@ -567,12 +777,12 @@ onMounted(loadAll)
 }
 
 .data-table tr:hover td {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  background: var(--bg-tertiary);
 }
 
 .id-cell {
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary);
   width: 60px;
 }
 
@@ -627,8 +837,8 @@ onMounted(loadAll)
 }
 
 .codigo-badge {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   padding: 4px 10px;
   border-radius: 8px;
   font-size: 0.8rem;
@@ -651,8 +861,118 @@ onMounted(loadAll)
 }
 
 .email-cell {
-  color: #64748b;
+  color: var(--text-secondary);
   font-style: italic;
+}
+
+.btn-danger {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+.btn-danger:hover {
+  background: #dc2626 !important;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-md {
+  max-width: 480px;
+}
+
+.modal-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-tertiary);
+}
+
+.modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: calc(90vh - 180px);
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: var(--bg-tertiary);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.3s;
+  box-sizing: border-box;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #11998e;
+  box-shadow: 0 0 0 4px rgba(17, 153, 142, 0.1);
 }
 
 @media (max-width: 1024px) {

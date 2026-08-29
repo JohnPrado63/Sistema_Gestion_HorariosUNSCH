@@ -190,6 +190,28 @@ const canAccess = (routeName) => {
 </script>
 
 <style>
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --shadow: rgba(0, 0, 0, 0.04);
+  --hover-bg: #f1f5f9;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -198,8 +220,8 @@ const canAccess = (routeName) => {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .app-layout {
@@ -373,8 +395,8 @@ body {
 }
 
 .menu-toggle:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .menu-toggle svg {
@@ -396,8 +418,8 @@ body {
 }
 
 .theme-toggle:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--hover-bg);
+  color: var(--text-primary);
 }
 
 .theme-toggle svg {
@@ -412,8 +434,8 @@ body {
 
 .topbar {
   height: 70px;
-  background: white;
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -421,7 +443,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px var(--shadow);
 }
 
 .topbar-left {
@@ -432,7 +454,7 @@ body {
 .page-title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -453,51 +475,21 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-tertiary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--border-color);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--text-secondary);
 }
 
-[data-theme="dark"] body,
-[data-theme="dark"] {
-  background: #0f172a;
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] .topbar {
-  background: #1e293b;
-  border-bottom-color: #334155;
-}
-
-[data-theme="dark"] .page-title {
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] .menu-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f1f5f9;
-}
-
-[data-theme="dark"] ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-[data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-[data-theme="dark"] .content-area {
-  background: #0f172a;
+.content-area {
+  flex: 1;
+  padding: 0;
+  background: var(--bg-primary);
 }
 </style>

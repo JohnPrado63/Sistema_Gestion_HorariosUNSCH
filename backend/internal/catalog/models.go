@@ -48,6 +48,7 @@ type Serie struct {
 	ID          int `json:"id_serie"`
 	IDPlan      int `json:"id_plan"`
 	NumeroCiclo int `json:"numero_ciclo"`
+	Subciclo    int `json:"subciclo"`
 }
 
 type Curso struct {
@@ -58,6 +59,8 @@ type Curso struct {
 	Creditos      int    `json:"creditos"`
 	HorasTeoria   int    `json:"horas_teoria"`
 	HorasPractica int    `json:"horas_practica"`
+	IDEscuela     int    `json:"id_escuela,omitempty"`
+	EscuelaNombre string `json:"escuela_nombre,omitempty"`
 }
 
 type Docente struct {

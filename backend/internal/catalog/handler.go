@@ -21,9 +21,131 @@ func (h Handler) Facultades(c *gin.Context) {
 	respond(c, data, err)
 }
 
+func (h Handler) CreateFacultad(c *gin.Context) {
+	var input struct {
+		Nombre string `json:"nombre" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fac, err := h.repo.CreateFacultad(c.Request.Context(), input.Nombre)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, fac)
+}
+
+func (h Handler) UpdateFacultad(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input struct {
+		Nombre string `json:"nombre" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	fac, err := h.repo.UpdateFacultad(c.Request.Context(), id, input.Nombre)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, fac)
+}
+
+func (h Handler) DeleteFacultad(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteFacultad(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Facultad eliminada"})
+}
+
 func (h Handler) Departamentos(c *gin.Context) {
 	data, err := h.repo.ListDepartamentos(c.Request.Context())
 	respond(c, data, err)
+}
+
+func (h Handler) CreateDepartamento(c *gin.Context) {
+	var input struct {
+		IDFacultad int    `json:"id_facultad" binding:"required"`
+		Nombre     string `json:"nombre" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	dept, err := h.repo.CreateDepartamento(c.Request.Context(), input.IDFacultad, input.Nombre)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, dept)
+}
+
+func (h Handler) UpdateDepartamento(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input struct {
+		IDFacultad int    `json:"id_facultad" binding:"required"`
+		Nombre     string `json:"nombre" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	dept, err := h.repo.UpdateDepartamento(c.Request.Context(), id, input.IDFacultad, input.Nombre)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, dept)
+}
+
+func (h Handler) DeleteDepartamento(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteDepartamento(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Departamento eliminado"})
 }
 
 func (h Handler) Escuelas(c *gin.Context) {
@@ -52,7 +174,16 @@ func (h Handler) Series(c *gin.Context) {
 }
 
 func (h Handler) Cursos(c *gin.Context) {
-	data, err := h.repo.ListCursos(c.Request.Context())
+	escuela := c.Query("escuela")
+	idEscuela := 0
+	if escuela != "" {
+		var err error
+		idEscuela, err = strconv.Atoi(escuela)
+		if err != nil {
+			idEscuela = 0
+		}
+	}
+	data, err := h.repo.ListCursos(c.Request.Context(), idEscuela)
 	respond(c, data, err)
 }
 
@@ -87,7 +218,9 @@ func (h Handler) MatrizDistancias(c *gin.Context) {
 }
 
 func (h Handler) CargasAcademicas(c *gin.Context) {
-	data, err := h.repo.ListCargasAcademicas(c.Request.Context())
+	periodo := c.Query("periodo")
+	escuela := c.Query("escuela")
+	data, err := h.repo.ListCargasAcademicas(c.Request.Context(), periodo, escuela)
 	respond(c, data, err)
 }
 
