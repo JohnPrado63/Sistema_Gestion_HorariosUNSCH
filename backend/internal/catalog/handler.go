@@ -260,6 +260,16 @@ func (h Handler) CreateHorario(c *gin.Context) {
 		return
 	}
 
+	existe, err := h.repo.ExistsHorario(c.Request.Context(), input.IDEscuela, input.IDPeriodo, input.IDSerie, input.Semestre)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al verificar horario existente"})
+		return
+	}
+	if existe {
+		c.JSON(http.StatusConflict, gin.H{"error": "Ya existe un horario para esta escuela, periodo, serie y semestre"})
+		return
+	}
+
 	hdr, err := h.repo.CreateHorario(c.Request.Context(), input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -359,6 +369,11 @@ func (h Handler) CreateBloque(c *gin.Context) {
 		return
 	}
 
+	if input.SlotFin <= input.SlotInicio {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "slot_fin debe ser mayor que slot_inicio"})
+		return
+	}
+
 	conflictos, err := h.repo.VerificarConflictoBloque(c.Request.Context(), input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -403,6 +418,11 @@ func (h Handler) VerificarConflictoBloque(c *gin.Context) {
 	var input CreateBloqueInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if input.SlotFin <= input.SlotInicio {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "slot_fin debe ser mayor que slot_inicio"})
 		return
 	}
 

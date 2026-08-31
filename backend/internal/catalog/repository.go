@@ -32,6 +32,7 @@ type RepositoryInterface interface {
 	ListBloquesHorario(ctx context.Context) ([]BloqueHorario, error)
 	ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAuditoria, error)
 	CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error)
+	ExistsHorario(ctx context.Context, idEscuela, idPeriodo int, idSerie *int, semestre *string) (bool, error)
 	DeleteHorario(ctx context.Context, id int) error
 	VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error)
 	CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error)
@@ -491,6 +492,20 @@ func (r Repository) ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAudito
 	}
 
 	return items, rows.Err()
+}
+
+func (r Repository) ExistsHorario(ctx context.Context, idEscuela, idPeriodo int, idSerie *int, semestre *string) (bool, error) {
+	var count int
+	err := r.db.QueryRow(ctx, `
+		SELECT COUNT(*) FROM horario
+		WHERE id_escuela = $1 AND id_periodo = $2
+		  AND ($3::int IS NULL AND id_serie IS NULL OR id_serie = $3)
+		  AND ($4::text IS NULL AND semestre IS NULL OR semestre = $4)
+	`, idEscuela, idPeriodo, idSerie, semestre).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 func (r Repository) CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error) {

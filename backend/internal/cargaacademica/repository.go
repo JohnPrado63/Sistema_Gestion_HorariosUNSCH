@@ -233,6 +233,31 @@ func (r *Repository) GetGruposByCarga(ctx context.Context, idCarga int) ([]Grupo
 	return grupos, rows.Err()
 }
 
+func (r *Repository) GetGrupoByID(ctx context.Context, idGrupo int) (*Grupo, error) {
+	var g Grupo
+	var idCarga int
+	err := r.db.QueryRow(ctx, `
+		SELECT g.id_grupo, g.id_carga, g.id_docente, g.id_grupo_teoria_ref,
+		       g.codigo_grupo, g.tipo_componente, g.es_nueva_necesidad,
+		       g.matriculados_proyectados, g.matriculados_reales,
+		       c.horas_teoria + c.horas_practica as horas_semanales
+		FROM grupo g
+		JOIN carga_academica ca ON ca.id_carga = g.id_carga
+		JOIN curso c ON c.id_curso = ca.id_curso
+		WHERE g.id_grupo = $1
+	`, idGrupo).Scan(
+		&g.ID, &idCarga, &g.IDDocente, &g.IDGrupoTeoriaRef,
+		&g.CodigoGrupo, &g.TipoComponente, &g.EsNuevaNecesidad,
+		&g.MatriculadosProyectados, &g.MatriculadosReales,
+		&g.HorasSemanales,
+	)
+	if err != nil {
+		return nil, err
+	}
+	g.IDCarga = idCarga
+	return &g, nil
+}
+
 func (r *Repository) CreateGrupo(ctx context.Context, idCarga int, input CreateGrupoInput) (*Grupo, error) {
 	var idGrupo int
 	err := r.db.QueryRow(ctx, `

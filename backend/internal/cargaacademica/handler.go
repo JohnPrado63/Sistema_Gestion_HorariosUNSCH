@@ -123,20 +123,40 @@ func (h *Handler) CreateGrupo(c *gin.Context) {
 		return
 	}
 
+	carga, err := h.repo.GetCargaByID(c.Request.Context(), idCarga)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener la carga academica"})
+		return
+	}
+	if carga == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Carga academica no encontrada"})
+		return
+	}
+
+	if input.TipoComponente == "PRACTICA" && carga.Curso.HorasTeoria > 0 {
+		if input.IDGrupoTeoriaRef == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Grupo practica debe referencing a un grupo de teoria"})
+			return
+		}
+		grupoTeoria, err := h.repo.GetGrupoByID(c.Request.Context(), *input.IDGrupoTeoriaRef)
+		if err != nil || grupoTeoria == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Grupo de teoria referenciado no existe"})
+			return
+		}
+		if grupoTeoria.TipoComponente != "TEORIA" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "El grupo referenciado debe ser de tipo TEORIA"})
+			return
+		}
+		if grupoTeoria.IDCarga != idCarga {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "El grupo de teoria debe pertenecer a la misma carga academica"})
+			return
+		}
+	}
+
 	if input.IDDocente != nil {
 		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "No hay periodo activo definido"})
-			return
-		}
-
-		carga, err := h.repo.GetCargaByID(c.Request.Context(), idCarga)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener la carga academica"})
-			return
-		}
-		if carga == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Carga academica no encontrada"})
 			return
 		}
 
