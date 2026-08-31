@@ -73,6 +73,14 @@
             Cursos
             <span class="tab-count">{{ catalogos.cursos.length }}</span>
           </button>
+          <button class="tab" :class="{ active: activeTab === 'aulas' }" @click="activeTab = 'aulas'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            Aulas
+            <span class="tab-count">{{ allAulas.length }}</span>
+          </button>
         </div>
       </div>
 
@@ -309,6 +317,71 @@
             </table>
           </div>
         </div>
+
+        <div v-show="activeTab === 'aulas'" class="tab-content">
+          <div class="content-header">
+            <h2>Aulas</h2>
+            <p>Gestionar disponibilidad de aulas en el sistema</p>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Código</th>
+                  <th>Tipo</th>
+                  <th>Pabellón</th>
+                  <th>Aforo</th>
+                  <th>Compartida</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in allAulas" :key="item.id_aula" :class="{ 'row-inactive': !item.activo }">
+                  <td class="id-cell">{{ item.id_aula }}</td>
+                  <td><span class="codigo-badge">{{ item.codigo }}</span></td>
+                  <td><span class="tipo-badge" :class="'tipo-' + item.tipo.toLowerCase()">{{ item.tipo }}</span></td>
+                  <td>{{ getPabellonNombre(item.id_pabellon) }}</td>
+                  <td>{{ item.aforo }}</td>
+                  <td>
+                    <span v-if="item.es_compartida" class="badge-compartida">Sí</span>
+                    <span v-else class="badge-no">No</span>
+                  </td>
+                  <td>
+                    <span v-if="item.activo" class="badge-activo">Activa</span>
+                    <span v-else class="badge-inactivo">Inactiva</span>
+                  </td>
+                  <td class="actions-cell">
+                    <button
+                      v-if="item.activo"
+                      class="btn btn-icon-sm btn-danger"
+                      @click="toggleAulaActivo(item)"
+                      title="Desactivar aula"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                      </svg>
+                    </button>
+                    <button
+                      v-else
+                      class="btn btn-icon-sm btn-success"
+                      @click="toggleAulaActivo(item)"
+                      title="Activar aula"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="16 12 12 8 8 12"/>
+                        <line x1="12" y1="16" x2="12" y2="8"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </template>
 
       <!-- Modal Facultad -->
@@ -418,19 +491,26 @@ const catalogos = ref({
   cursos: []
 })
 
+const allAulas = ref([])
+const pabellones = ref([])
+
 async function loadAll() {
   loading.value = true
   error.value = ''
   try {
-    const [facultades, departamentos, escuelas, docentes, cursos] = await Promise.all([
+    const [facultades, departamentos, escuelas, docentes, cursos, aulas, pabs] = await Promise.all([
       api.facultades.list(),
       api.departamentos.list(),
       api.escuelas.list(),
       api.docentes.list(),
-      api.cursos.list()
+      api.cursos.list(),
+      api.aulas.listAll(),
+      api.get('/pabellones')
     ])
 
     catalogos.value = { facultades, departamentos, escuelas, docentes, cursos }
+    allAulas.value = aulas
+    pabellones.value = pabs
   } catch (e) {
     error.value = e.message
   } finally {
@@ -542,6 +622,22 @@ function getFacultadNombre(id) {
 function getDepartamentoNombre(id) {
   const d = catalogos.value.departamentos.find(x => x.id_departamento === id)
   return d ? d.nombre : `Depto #${id}`
+}
+
+function getPabellonNombre(id) {
+  const p = pabellones.value.find(x => x.id_pabellon === id)
+  return p ? p.codigo : `Pabellón #${id}`
+}
+
+async function toggleAulaActivo(aula) {
+  const accion = aula.activo ? 'desactivar' : 'activar'
+  if (!confirm(`¿${aula.activo ? 'Desactivar' : 'Activar'} el aula "${aula.codigo}"?`)) return
+  try {
+    await api.aulas.setActivo(aula.id_aula, !aula.activo)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
 }
 
 onMounted(loadAll)
@@ -874,6 +970,15 @@ onMounted(loadAll)
   background: #dc2626 !important;
 }
 
+.btn-success {
+  background: #22c55e !important;
+  color: white !important;
+}
+
+.btn-success:hover {
+  background: #16a34a !important;
+}
+
 .content-header {
   display: flex;
   justify-content: space-between;
@@ -996,5 +1101,72 @@ onMounted(loadAll)
   .page-subtitle {
     margin: 4px 0 0 0;
   }
+}
+
+.tipo-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.tipo-teoria {
+  background: linear-gradient(135deg, #3b82f620, #8b5cf620);
+  color: #3b82f6;
+}
+
+.tipo-practica {
+  background: linear-gradient(135deg, #f59e0b20, #f9731620);
+  color: #f59e0b;
+}
+
+.tipo-laboratorio {
+  background: linear-gradient(135deg, #8b5cf620, #a855f720);
+  color: #8b5cf6;
+}
+
+.badge-compartida {
+  background: linear-gradient(135deg, #f59e0b20, #f9731620);
+  color: #f59e0b;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.badge-no {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.badge-activo {
+  background: linear-gradient(135deg, #22c55e20, #16a34a20);
+  color: #22c55e;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-inactivo {
+  background: linear-gradient(135deg, #ef444420, #dc262620);
+  color: #ef4444;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.row-inactive {
+  opacity: 0.6;
+  background: var(--bg-tertiary);
+}
+
+.row-inactive:hover td {
+  background: var(--bg-tertiary) !important;
 }
 </style>

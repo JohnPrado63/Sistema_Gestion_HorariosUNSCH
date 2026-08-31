@@ -70,6 +70,8 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		api.DELETE("/departamentos/:id", authHandler(), usuariosHandler("ADMIN_TI", "DGA"), cat.DeleteDepartamento)
 		api.GET("/escuelas", cat.Escuelas)
 		api.GET("/aulas", cat.Aulas)
+		api.GET("/aulas/todas", cat.AllAulas)
+		api.PUT("/aulas/:id/activo", authHandler(), usuariosHandler("ADMIN_TI"), cat.SetAulaActivo)
 		api.GET("/periodos", cat.Periodos)
 		api.GET("/sesiones-departamento", cat.SesionesDepartamento)
 		api.GET("/locales", cat.Locales)

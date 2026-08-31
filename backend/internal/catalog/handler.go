@@ -158,6 +158,36 @@ func (h Handler) Aulas(c *gin.Context) {
 	respond(c, data, err)
 }
 
+func (h Handler) AllAulas(c *gin.Context) {
+	data, err := h.repo.ListAllAulas(c.Request.Context())
+	respond(c, data, err)
+}
+
+func (h Handler) SetAulaActivo(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input struct {
+		Activo bool `json:"activo"`
+	}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = h.repo.SetAulaActivo(c.Request.Context(), id, input.Activo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Aula actualizada correctamente"})
+}
+
 func (h Handler) Usuarios(c *gin.Context) {
 	data, err := h.repo.ListUsuarios(c.Request.Context())
 	respond(c, data, err)

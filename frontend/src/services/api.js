@@ -100,7 +100,9 @@ export const api = {
   },
 
   aulas: {
-    list: () => api.get('/aulas')
+    list: () => api.get('/aulas'),
+    listAll: () => api.get('/aulas/todas'),
+    setActivo: (id, activo) => api.put(`/aulas/${id}/activo`, { activo })
   },
 
   horarios: {

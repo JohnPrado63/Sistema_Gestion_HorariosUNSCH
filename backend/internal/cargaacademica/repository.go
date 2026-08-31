@@ -258,6 +258,21 @@ func (r *Repository) GetGrupoByID(ctx context.Context, idGrupo int) (*Grupo, err
 	return &g, nil
 }
 
+func (r *Repository) ExistsGrupoByCodigo(ctx context.Context, idCarga int, codigoGrupo string, excludeIdGrupo *int) (bool, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM grupo WHERE id_carga = $1 AND UPPER(codigo_grupo) = UPPER($2)`
+	args := []interface{}{idCarga, codigoGrupo}
+	if excludeIdGrupo != nil {
+		query += ` AND id_grupo != $3`
+		args = append(args, *excludeIdGrupo)
+	}
+	err := r.db.QueryRow(ctx, query, args...).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r *Repository) CreateGrupo(ctx context.Context, idCarga int, input CreateGrupoInput) (*Grupo, error) {
 	var idGrupo int
 	err := r.db.QueryRow(ctx, `

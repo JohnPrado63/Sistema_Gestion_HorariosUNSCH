@@ -48,6 +48,8 @@ type CreateGrupoInput struct {
 	EsNuevaNecesidad       bool   `json:"es_nueva_necesidad"`
 	MatriculadosProyectados int   `json:"matriculados_proyectados"`
 	IDGrupoTeoriaRef       *int   `json:"id_grupo_teoria_ref"`
+	ConfirmarExcesoDGA     bool   `json:"confirmar_exceso_dga"`
+	JustificacionDGA       string `json:"justificacion_dga"`
 }
 
 type UpdateGrupoInput struct {
@@ -55,6 +57,8 @@ type UpdateGrupoInput struct {
 	CodigoGrupo            string `json:"codigo_grupo"`
 	EsNuevaNecesidad       *bool  `json:"es_nueva_necesidad"`
 	MatriculadosProyectados *int  `json:"matriculados_proyectados"`
+	ConfirmarExcesoDGA     bool   `json:"confirmar_exceso_dga"`
+	JustificacionDGA       string `json:"justificacion_dga"`
 }
 
 type AprobarCargaInput struct {

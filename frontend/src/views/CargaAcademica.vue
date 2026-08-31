@@ -690,14 +690,33 @@ async function saveGrupo() {
         matriculados_proyectados: grupoForm.value.matriculados_proyectados
       })
     } else {
-      await api.post(`/carga-academica/${selectedCarga.value.id_carga}/grupos`, {
+      const result = await api.post(`/carga-academica/${selectedCarga.value.id_carga}/grupos`, {
         codigo_grupo: grupoForm.value.codigo_grupo,
         tipo_componente: grupoForm.value.tipo_componente,
         id_docente: grupoForm.value.id_docente,
         es_nueva_necesidad: grupoForm.value.es_nueva_necesidad,
         matriculados_proyectados: grupoForm.value.matriculados_proyectados,
-        id_grupo_teoria_ref: grupoForm.value.id_grupo_teoria_ref
+        id_grupo_teoria_ref: grupoForm.value.id_grupo_teoria_ref,
+        confirmar_exceso_dga: false
       })
+
+      if (result.warning && result.requiere_aprobacion_dga) {
+        const justificacion = prompt(`ADVERTENCIA: Docente excedera las 16 horas lectivas.\nHoras actuales: ${result.horas_actuales}\nHoras curso: ${result.horas_nueva_curso}\nTotal: ${result.horas_resultado}\n\nPara continuar, ingrese la justificacion de la DGA:`)
+        if (!justificacion || justificacion.trim() === '') {
+          saving.value = false
+          return
+        }
+        await api.post(`/carga-academica/${selectedCarga.value.id_carga}/grupos`, {
+          codigo_grupo: grupoForm.value.codigo_grupo,
+          tipo_componente: grupoForm.value.tipo_componente,
+          id_docente: grupoForm.value.id_docente,
+          es_nueva_necesidad: grupoForm.value.es_nueva_necesidad,
+          matriculados_proyectados: grupoForm.value.matriculados_proyectados,
+          id_grupo_teoria_ref: grupoForm.value.id_grupo_teoria_ref,
+          confirmar_exceso_dga: true,
+          justificacion_dga: justificacion.trim()
+        })
+      }
     }
     closeModal()
     loadCargas()

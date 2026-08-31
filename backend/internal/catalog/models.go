@@ -28,6 +28,7 @@ type Aula struct {
 	Tipo         string `json:"tipo"`
 	Aforo        int    `json:"aforo"`
 	EsCompartida bool   `json:"es_compartida"`
+	Activo       bool   `json:"activo"`
 }
 
 type Usuario struct {

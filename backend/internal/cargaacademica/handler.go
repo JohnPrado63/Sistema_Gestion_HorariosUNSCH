@@ -133,6 +133,16 @@ func (h *Handler) CreateGrupo(c *gin.Context) {
 		return
 	}
 
+	existeCodigo, err := h.repo.ExistsGrupoByCodigo(c.Request.Context(), idCarga, input.CodigoGrupo, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al verificar codigo de grupo"})
+		return
+	}
+	if existeCodigo {
+		c.JSON(http.StatusConflict, gin.H{"error": "Ya existe un grupo con ese codigo para esta carga academica"})
+		return
+	}
+
 	if input.TipoComponente == "PRACTICA" && carga.Curso.HorasTeoria > 0 {
 		if input.IDGrupoTeoriaRef == nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Grupo practica debe referencing a un grupo de teoria"})
@@ -168,13 +178,16 @@ func (h *Handler) CreateGrupo(c *gin.Context) {
 		}
 
 		if horasDocente+cursoHoras > 16 {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":             "Docente excederia las 16 horas lectivas",
-				"horas_actuales":    horasDocente,
-				"horas_nueva_curso": cursoHoras,
-				"horas_resultado":   horasDocente + cursoHoras,
-			})
-			return
+			if !input.ConfirmarExcesoDGA || input.JustificacionDGA == "" {
+				c.JSON(http.StatusOK, gin.H{
+					"warning":           "Docente excedera las 16 horas lectivas",
+					"horas_actuales":    horasDocente,
+					"horas_nueva_curso": cursoHoras,
+					"horas_resultado":   horasDocente + cursoHoras,
+					"requiere_aprobacion_dga": true,
+				})
+				return
+			}
 		}
 	}
 
@@ -200,6 +213,24 @@ func (h *Handler) UpdateGrupo(c *gin.Context) {
 		return
 	}
 
+	grupoActual, err := h.repo.GetGrupoByID(c.Request.Context(), idGrupo)
+	if err != nil || grupoActual == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Grupo no encontrado"})
+		return
+	}
+
+	if input.CodigoGrupo != "" && input.CodigoGrupo != grupoActual.CodigoGrupo {
+		existeCodigo, err := h.repo.ExistsGrupoByCodigo(c.Request.Context(), grupoActual.IDCarga, input.CodigoGrupo, &idGrupo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al verificar codigo de grupo"})
+			return
+		}
+		if existeCodigo {
+			c.JSON(http.StatusConflict, gin.H{"error": "Ya existe un grupo con ese codigo para esta carga academica"})
+			return
+		}
+	}
+
 	if input.IDDocente != nil {
 		periodoActivo, err := h.repo.GetPeriodoActivo(c.Request.Context())
 		if err != nil {
@@ -221,13 +252,16 @@ func (h *Handler) UpdateGrupo(c *gin.Context) {
 
 		horasNetas := horasDocente - horasGrupoActual
 		if horasNetas+horasGrupoActual > 16 {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":           "Docente excederia las 16 horas lectivas",
-				"horas_actuales":  horasDocente,
-				"horas_grupo":     horasGrupoActual,
-				"horas_resultado": horasNetas + horasGrupoActual,
-			})
-			return
+			if !input.ConfirmarExcesoDGA || input.JustificacionDGA == "" {
+				c.JSON(http.StatusOK, gin.H{
+					"warning":              "Docente excedera las 16 horas lectivas",
+					"horas_actuales":       horasDocente,
+					"horas_grupo":          horasGrupoActual,
+					"horas_resultado":      horasNetas + horasGrupoActual,
+					"requiere_aprobacion_dga": true,
+				})
+				return
+			}
 		}
 	}
 

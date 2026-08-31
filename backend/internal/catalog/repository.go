@@ -16,6 +16,8 @@ type RepositoryInterface interface {
 	ListDepartamentos(ctx context.Context) ([]Departamento, error)
 	ListEscuelas(ctx context.Context) ([]Escuela, error)
 	ListAulas(ctx context.Context) ([]Aula, error)
+	ListAllAulas(ctx context.Context) ([]Aula, error)
+	SetAulaActivo(ctx context.Context, idAula int, activo bool) error
 	ListUsuarios(ctx context.Context) ([]Usuario, error)
 	ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error)
 	ListSeries(ctx context.Context, idEscuela int) ([]Serie, error)
@@ -144,7 +146,7 @@ func (r Repository) ListEscuelas(ctx context.Context) ([]Escuela, error) {
 }
 
 func (r Repository) ListAulas(ctx context.Context) ([]Aula, error) {
-	rows, err := r.db.Query(ctx, `SELECT id_aula, id_pabellon, id_escuela, codigo, tipo::text, aforo, es_compartida FROM aula ORDER BY codigo`)
+	rows, err := r.db.Query(ctx, `SELECT id_aula, id_pabellon, id_escuela, codigo, tipo::text, aula.aforo, aula.es_compartida, aula.activo FROM aula WHERE aula.activo = true ORDER BY codigo`)
 	if err != nil {
 		return nil, err
 	}
@@ -153,13 +155,37 @@ func (r Repository) ListAulas(ctx context.Context) ([]Aula, error) {
 	items := make([]Aula, 0)
 	for rows.Next() {
 		var item Aula
-		if err := rows.Scan(&item.ID, &item.IDPabellon, &item.IDEscuela, &item.Codigo, &item.Tipo, &item.Aforo, &item.EsCompartida); err != nil {
+		if err := rows.Scan(&item.ID, &item.IDPabellon, &item.IDEscuela, &item.Codigo, &item.Tipo, &item.Aforo, &item.EsCompartida, &item.Activo); err != nil {
 			return nil, err
 		}
 		items = append(items, item)
 	}
 
 	return items, rows.Err()
+}
+
+func (r Repository) ListAllAulas(ctx context.Context) ([]Aula, error) {
+	rows, err := r.db.Query(ctx, `SELECT id_aula, id_pabellon, id_escuela, codigo, tipo::text, aula.aforo, aula.es_compartida, aula.activo FROM aula ORDER BY codigo`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]Aula, 0)
+	for rows.Next() {
+		var item Aula
+		if err := rows.Scan(&item.ID, &item.IDPabellon, &item.IDEscuela, &item.Codigo, &item.Tipo, &item.Aforo, &item.EsCompartida, &item.Activo); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, rows.Err()
+}
+
+func (r Repository) SetAulaActivo(ctx context.Context, idAula int, activo bool) error {
+	_, err := r.db.Exec(ctx, `UPDATE aula SET activo = $1 WHERE id_aula = $2`, activo, idAula)
+	return err
 }
 
 func (r Repository) ListUsuarios(ctx context.Context) ([]Usuario, error) {
