@@ -8,246 +8,270 @@
           </svg>
           Motor de Validaciones
         </h1>
-        <p class="page-subtitle">Prueba las reglas de negocio del sistema</p>
-      </div>
-      <div class="header-actions">
-        <span class="rules-badge">RV-01 a RV-09</span>
+        <p class="page-subtitle">Validar asignaciones de bloques horarios</p>
       </div>
     </header>
 
     <div class="page-content">
-      <div class="stats-grid">
-        <div class="stat-card stat-gradient-purple">
-          <div class="stat-icon-wrapper">
-            <div class="stat-icon white">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">9</span>
-            <span class="stat-label">Reglas Activas</span>
-          </div>
-        </div>
-
-        <div class="stat-card stat-gradient-red">
-          <div class="stat-icon-wrapper">
-            <div class="stat-icon white">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">5</span>
-            <span class="stat-label">Bloqueantes</span>
-          </div>
-        </div>
-
-        <div class="stat-card stat-gradient-amber">
-          <div class="stat-icon-wrapper">
-            <div class="stat-icon white">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">3</span>
-            <span class="stat-label">Advertencias</span>
-          </div>
-        </div>
-
-        <div class="stat-card stat-gradient-blue">
-          <div class="stat-icon-wrapper">
-            <div class="stat-icon white">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="16" x2="12" y2="12"/>
-                <line x1="12" y1="8" x2="12.01" y2="8"/>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-content">
-            <span class="stat-value">1</span>
-            <span class="stat-label">Informativo</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="main-grid">
-        <div class="card test-card">
-          <div class="card-header">
-            <h2 class="card-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-              </svg>
-              Probar Validaciones
-            </h2>
-          </div>
-          <div class="card-body">
-            <p class="test-description">
-              Selecciona un escenario de prueba para verificar el comportamiento del motor de validaciones.
-            </p>
-
-            <div class="test-actions">
-              <button class="btn btn-primary btn-lg" @click="ejecutarSimple">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
+      <div class="validation-grid">
+        <!-- Columna Izquierda: Seleccion y Formulario -->
+        <div class="validation-left">
+          <!-- Seleccion de Horario -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                Escenario Simple
-              </button>
-              <button class="btn btn-secondary btn-lg" @click="ejecutarComplejo">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                Seleccionar Horario
+              </h2>
+            </div>
+            <div class="card-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Escuela *</label>
+                  <select v-model="filtro.escuela" class="form-input" @change="onEscuelaChange">
+                    <option value="">-- Seleccionar escuela --</option>
+                    <option v-for="e in escuelas" :key="e.id_escuela" :value="e.id_escuela">
+                      {{ e.nombre }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Periodo *</label>
+                  <select v-model="filtro.periodo" class="form-input" @change="loadHorarios">
+                    <option value="">-- Seleccionar periodo --</option>
+                    <option v-for="p in periodos" :key="p.id_periodo" :value="p.id_periodo">
+                      {{ p.codigo }} {{ p.activo ? '(Activo)' : '' }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Serie</label>
+                  <select v-model="filtro.serie" class="form-input" @change="loadHorarios" :disabled="!filtro.escuela">
+                    <option value="">-- Todas las series --</option>
+                    <option v-for="s in seriesFiltradas" :key="s.id_serie" :value="s.id_serie">
+                      {{ s.numero_ciclo }}-{{ s.subciclo === 1 ? 'I' : 'II' }} ({{ s.codigo_plan }})
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Semestre</label>
+                  <select v-model="filtro.semestre" class="form-input" @change="loadHorarios">
+                    <option value="">-- Ambos --</option>
+                    <option value="I">Impar (I)</option>
+                    <option value="II">Par (II)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloques Existentes del Horario -->
+          <div class="card" v-if="horarioSeleccionado">
+            <div class="card-header">
+              <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
-                Escenario Complejo
-              </button>
+                Bloques Actuales del Horario
+              </h2>
             </div>
-
-            <div v-if="loading" class="loading-state">
-              <div class="spinner-lg"></div>
-              <p>Ejecutando validación...</p>
+            <div class="card-body">
+              <div v-if="bloquesExistentes.length === 0" class="empty-message">
+                No hay bloques asignados en este horario
+              </div>
+              <div v-else class="bloques-list">
+                <div v-for="bloque in bloquesExistentes" :key="bloque.id_bloque" class="bloque-item">
+                  <div class="bloque-info">
+                    <span class="bloque-curso">{{ bloque.codigo_curso }}</span>
+                    <span class="bloque-nombre">{{ bloque.nombre_curso }}</span>
+                    <span class="bloque-grupo">{{ bloque.codigo_grupo }}</span>
+                    <span class="bloque-tipo" :class="'tipo-' + bloque.tipo_componente.toLowerCase()">{{ bloque.tipo_componente }}</span>
+                  </div>
+                  <div class="bloque-detalles">
+                    <span>{{ getDiaNombre(bloque.dia_semana) }}</span>
+                    <span>Slot {{ bloque.slot_inicio }} - {{ bloque.slot_fin }}</span>
+                    <span>{{ bloque.codigo_aula }}</span>
+                    <span>{{ bloque.nombre_docente || 'Sin docente' }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <template v-else-if="resultado && resultado.findings">
-              <div class="result-header">
-                <h3>Resultado de la Validación</h3>
-                <span class="result-badge" :class="resultado.findings.length === 0 ? 'success' : 'has-issues'">
-                  {{ resultado.findings.length === 0 ? 'Sin problemas' : resultado.findings.length + ' hallazgo(s)' }}
-                </span>
+          <!-- Formulario Nueva Propuesta -->
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                Proponer Nuevo Bloque
+              </h2>
+            </div>
+            <div class="card-body">
+              <div v-if="!horarioSeleccionado" class="alert-message">
+                Selecciona un horario primero para proponer un bloque
+              </div>
+              <template v-else>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Grupo *</label>
+                    <select v-model="propuesta.id_grupo" class="form-input" @change="onGrupoChange">
+                      <option value="">-- Seleccionar grupo --</option>
+                      <option v-for="g in gruposDisponibles" :key="g.id_grupo" :value="g.id_grupo">
+                        {{ g.codigo_curso }} - {{ g.codigo_grupo }} ({{ g.tipo_componente }})
+                      </option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Aula *</label>
+                    <select v-model="propuesta.id_aula" class="form-input" @change="onAulaChange">
+                      <option value="">-- Seleccionar aula --</option>
+                      <option v-for="a in aulasDisponibles" :key="a.id_aula" :value="a.id_aula">
+                        {{ a.codigo }} ({{ a.tipo }}) - Cap: {{ a.aforo }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Día *</label>
+                    <select v-model="propuesta.dia_semana" class="form-input">
+                      <option value="">-- Seleccionar día --</option>
+                      <option v-for="(d, i) in diasSemana" :key="i" :value="i + 1">{{ d }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Hora Inicio *</label>
+                    <select v-model="propuesta.slot_inicio" class="form-input">
+                      <option value="">-- Seleccionar --</option>
+                      <option v-for="(h, i) in horasLista" :key="i" :value="i + 1">{{ h }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Hora Fin *</label>
+                    <select v-model="propuesta.slot_fin" class="form-input">
+                      <option value="">-- Seleccionar --</option>
+                      <option v-for="(h, i) in horasLista" :key="i" :value="i + 1">{{ h }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button class="btn btn-primary btn-lg" @click="validarPropuesta" :disabled="!puedeValidar || loading">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Validar Propuesta
+                  </button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Resultados y Reglas -->
+        <div class="validation-right">
+          <!-- Resultado de Validacion -->
+          <div class="card result-card" v-if="resultado !== null">
+            <div class="card-header">
+              <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                Resultado de Validación
+              </h2>
+              <span class="result-badge" :class="resultado.findings?.length === 0 ? 'success' : 'has-issues'">
+                {{ resultado.findings?.length === 0 ? 'Sin problemas' : resultado.findings?.length + ' hallazgo(s)' }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div v-if="loading" class="loading-state">
+                <div class="spinner-lg"></div>
+                <p>Validando...</p>
               </div>
 
-              <div v-if="resultado.findings.length === 0" class="success-state">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <div v-else-if="resultado.findings?.length === 0" class="success-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                   <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
                 <p>Sin observaciones - La asignación puede continuar</p>
               </div>
 
-              <div v-else class="result-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Regla</th>
-                      <th>Severidad</th>
-                      <th>Mensaje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(finding, idx) in resultado.findings" :key="idx">
-                      <td><span class="rule-code">{{ finding.rule }}</span></td>
-                      <td>
-                        <span class="severity-badge" :class="getSeverityClass(finding.severity)">
-                          {{ finding.severity }}
-                        </span>
-                      </td>
-                      <td>{{ finding.message }}</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div v-else class="findings-list">
+                <div v-for="(finding, idx) in resultado.findings" :key="idx" class="finding-item" :class="'severity-' + finding.severity.toLowerCase()">
+                  <div class="finding-header">
+                    <span class="finding-rule">{{ finding.rule }}</span>
+                    <span class="finding-severity" :class="'severity-' + finding.severity.toLowerCase()">
+                      {{ finding.severity }}
+                    </span>
+                  </div>
+                  <p class="finding-message">{{ finding.message }}</p>
+                </div>
               </div>
-            </template>
+            </div>
+          </div>
 
-            <template v-else>
-              <div class="empty-state">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                  <path d="M9 12l2 2 4-4"/>
-                  <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          <!-- Reglas Disponibles -->
+          <div class="card rules-card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
-                <p>Selecciona un escenario para ejecutar la validación</p>
-              </div>
-            </template>
-          </div>
-        </div>
-
-        <div class="card rules-reference">
-          <div class="card-header">
-            <h2 class="card-title">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              Reglas Disponibles
-            </h2>
-          </div>
-          <div class="card-body">
-            <div class="rules-list">
-              <div class="rule-item blocker">
-                <div class="rule-header">
+                Reglas Disponibles
+              </h2>
+            </div>
+            <div class="card-body">
+              <div class="rules-list">
+                <div class="rule-item blocker">
                   <span class="rule-code">RV-01</span>
-                  <span class="severity-pill blocker">Bloqueante</span>
+                  <span>Conflicto de docente</span>
                 </div>
-                <p>Conflicto de docente (mismo horario y docente)</p>
-              </div>
-              <div class="rule-item blocker">
-                <div class="rule-header">
+                <div class="rule-item blocker">
                   <span class="rule-code">RV-02</span>
-                  <span class="severity-pill blocker">Bloqueante</span>
+                  <span>Conflicto de aula</span>
                 </div>
-                <p>Conflicto de aula (aula ocupada)</p>
-              </div>
-              <div class="rule-item blocker">
-                <div class="rule-header">
+                <div class="rule-item blocker">
                   <span class="rule-code">RV-03</span>
-                  <span class="severity-pill blocker">Bloqueante</span>
+                  <span>Sesión de departamento</span>
                 </div>
-                <p>Conflicto con sesión de departamento</p>
-              </div>
-              <div class="rule-item blocker">
-                <div class="rule-header">
+                <div class="rule-item blocker">
                   <span class="rule-code">RV-04a</span>
-                  <span class="severity-pill blocker">Bloqueante</span>
+                  <span>Sin tiempo de traslado</span>
                 </div>
-                <p>Tiempo insuficiente para traslado entre pabellones</p>
-              </div>
-              <div class="rule-item warning">
-                <div class="rule-header">
+                <div class="rule-item warning">
                   <span class="rule-code">RV-04b</span>
-                  <span class="severity-pill warning">Advertencia</span>
+                  <span>Tiempo traslado insuficiente</span>
                 </div>
-                <p>Intervalo libre menor al tiempo de desplazamiento</p>
-              </div>
-              <div class="rule-item warning">
-                <div class="rule-header">
+                <div class="rule-item warning">
                   <span class="rule-code">RV-05</span>
-                  <span class="severity-pill warning">Advertencia</span>
+                  <span>Carga lectiva > 16h</span>
                 </div>
-                <p>Carga lectiva semanal supera 16 horas</p>
-              </div>
-              <div class="rule-item info">
-                <div class="rule-header">
+                <div class="rule-item info">
                   <span class="rule-code">RV-06</span>
-                  <span class="severity-pill info">Informativo</span>
+                  <span>Misma serie mismo horario</span>
                 </div>
-                <p>Dos cursos de la misma serie en el mismo horario</p>
-              </div>
-              <div class="rule-item blocker">
-                <div class="rule-header">
+                <div class="rule-item blocker">
                   <span class="rule-code">RV-07</span>
-                  <span class="severity-pill blocker">Bloqueante</span>
+                  <span>Aula compartida reservada</span>
                 </div>
-                <p>Aula compartida ya reservada por otra escuela</p>
-              </div>
-              <div class="rule-item blocker">
-                <div class="rule-header">
+                <div class="rule-item blocker">
                   <span class="rule-code">RV-08</span>
-                  <span class="severity-pill blocker">Bloqueante</span>
+                  <span>Justificación requerida</span>
                 </div>
-                <p>Cambios en horario oficial requieren justificación</p>
-              </div>
-              <div class="rule-item warning">
-                <div class="rule-header">
+                <div class="rule-item warning">
                   <span class="rule-code">RV-09</span>
-                  <span class="severity-pill warning">Advertencia</span>
+                  <span>Matrícula > Capacidad aula</span>
                 </div>
-                <p>Matrícula excede capacidad del aula</p>
               </div>
             </div>
           </div>
@@ -258,120 +282,260 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import api from '../services/api'
 
-const loading = ref(false)
+const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+const horasLista = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00']
+
+const escuelas = ref([])
+const periodos = ref([])
+const series = ref([])
+const aulas = ref([])
+const horarios = ref([])
+const gruposDisponibles = ref([])
+
+const bloquesExistentes = ref([])
 const resultado = ref(null)
+const loading = ref(false)
+const horarioSeleccionado = ref(null)
 
-async function ejecutarSimple() {
+const filtro = ref({
+  escuela: '',
+  periodo: '',
+  serie: '',
+  semestre: ''
+})
+
+const propuesta = ref({
+  id_grupo: '',
+  id_aula: '',
+  dia_semana: '',
+  slot_inicio: '',
+  slot_fin: ''
+})
+
+const seriesFiltradas = computed(() => {
+  if (!filtro.value.escuela) return []
+  return series.value.filter(s => {
+    const plan = plansCache.value.find(p => p.id_plan === s.id_plan)
+    return plan && plan.id_escuela === parseInt(filtro.value.escuela)
+  })
+})
+
+const plansCache = ref([])
+
+const aulasDisponibles = computed(() => {
+  return aulas.value.filter(a => a.activo)
+})
+
+const puedeValidar = computed(() => {
+  return propuesta.value.id_grupo &&
+    propuesta.value.id_aula &&
+    propuesta.value.dia_semana &&
+    propuesta.value.slot_inicio &&
+    propuesta.value.slot_fin &&
+    horarioSeleccionado.value
+})
+
+async function loadCatalogos() {
+  try {
+    const [esc, per, ser, aul, plans] = await Promise.all([
+      api.escuelas.list(),
+      api.periodos.list(),
+      api.series.list(),
+      api.aulas.listAll(),
+      api.get('/planes-estudio')
+    ])
+    escuelas.value = esc
+    periodos.value = per
+    series.value = ser
+    aulas.value = aul
+    plansCache.value = plans
+  } catch (e) {
+    console.error('Error cargando catalogos:', e)
+  }
+}
+
+async function onEscuelaChange() {
+  filtro.value.serie = ''
+  await loadSeriesPorEscuela()
+  loadHorarios()
+}
+
+async function loadSeriesPorEscuela() {
+  if (!filtro.value.escuela) {
+    series.value = []
+    return
+  }
+  try {
+    const ser = await api.get(`/series?escuela=${filtro.value.escuela}`)
+    series.value = ser
+  } catch (e) {
+    console.error('Error cargando series:', e)
+  }
+}
+
+async function loadHorarios() {
+  if (!filtro.value.escuela || !filtro.value.periodo) {
+    horarios.value = []
+    horarioSeleccionado.value = null
+    bloquesExistentes.value = []
+    return
+  }
+
+  try {
+    const h = await api.horarios.list()
+    horarios.value = h.filter(hor => {
+      if (hor.id_escuela !== parseInt(filtro.value.escuela)) return false
+      if (hor.id_periodo !== parseInt(filtro.value.periodo)) return false
+      if (filtro.value.serie && hor.id_serie !== parseInt(filtro.value.serie)) return false
+      if (filtro.value.semestre && hor.semestre !== filtro.value.semestre) return false
+      return true
+    })
+
+    if (horarios.value.length === 1) {
+      horarioSeleccionado.value = horarios.value[0]
+      await loadBloquesDelHorario()
+      await loadGruposDisponibles()
+    } else {
+      horarioSeleccionado.value = null
+      bloquesExistentes.value = []
+    }
+  } catch (e) {
+    console.error('Error cargando horarios:', e)
+  }
+}
+
+async function loadBloquesDelHorario() {
+  if (!horarioSeleccionado.value) return
+  try {
+    const bloques = await api.horarios.bloques(horarioSeleccionado.value.id_horario)
+    bloquesExistentes.value = bloques
+  } catch (e) {
+    console.error('Error cargando bloques:', e)
+  }
+}
+
+async function loadGruposDisponibles() {
+  if (!horarioSeleccionado.value) return
+  try {
+    const grupos = await api.gruposHorario.list(
+      horarioSeleccionado.value.id_escuela,
+      horarioSeleccionado.value.id_periodo,
+      horarioSeleccionado.value.id_serie || '',
+      horarioSeleccionado.value.semestre || ''
+    )
+    gruposDisponibles.value = grupos
+  } catch (e) {
+    console.error('Error cargando grupos:', e)
+  }
+}
+
+function onGrupoChange() {
+  const grupo = gruposDisponibles.value.find(g => g.id_grupo === parseInt(propuesta.value.id_grupo))
+  if (grupo) {
+    propuesta.value.grupo_data = grupo
+  }
+}
+
+function onAulaChange() {
+  const aula = aulas.value.find(a => a.id_aula === parseInt(propuesta.value.id_aula))
+  if (aula) {
+    propuesta.value.aula_data = aula
+  }
+}
+
+async function validarPropuesta() {
+  if (!puedeValidar.value) return
+
   loading.value = true
   resultado.value = null
 
   try {
+    const grupo = gruposDisponibles.value.find(g => g.id_grupo === parseInt(propuesta.value.id_grupo))
+    const aula = aulas.value.find(a => a.id_aula === parseInt(propuesta.value.id_aula))
+
+    const existingBlocks = bloquesExistentes.value.map(b => ({
+      id: b.id_bloque,
+      schedule_id: horarioSeleccionado.value.id_horario,
+      school_id: horarioSeleccionado.value.id_escuela,
+      group_id: b.id_grupo,
+      course_id: b.id_curso,
+      series_id: 0,
+      teacher_id: b.id_docente || 0,
+      department_id: b.id_docente_departamento || 0,
+      room_id: b.id_aula,
+      room_shared: aula?.es_compartida || false,
+      pavilion_id: b.id_aula_pabellon || 0,
+      day: b.dia_semana,
+      start_slot: b.slot_inicio,
+      end_slot: b.slot_fin,
+      enrollment: grupo?.matriculados_proyectados || 0,
+      room_capacity: aula?.aforo || 0,
+      component_type: b.tipo_componente || '',
+      course_hours_teoria: b.horas_teoria || 0,
+      course_hours_practica: b.horas_practica || 0
+    }))
+
+    const proposedBlock = {
+      id: 0,
+      schedule_id: horarioSeleccionado.value.id_horario,
+      school_id: horarioSeleccionado.value.id_escuela,
+      group_id: parseInt(propuesta.value.id_grupo),
+      course_id: grupo?.id_curso || 0,
+      series_id: 0,
+      teacher_id: grupo?.id_docente || 0,
+      department_id: 0,
+      room_id: parseInt(propuesta.value.id_aula),
+      room_shared: aula?.es_compartida || false,
+      pavilion_id: aula?.id_pabellon || 0,
+      day: parseInt(propuesta.value.dia_semana),
+      start_slot: parseInt(propuesta.value.slot_inicio),
+      end_slot: parseInt(propuesta.value.slot_fin),
+      enrollment: grupo?.matriculados_proyectados || 0,
+      room_capacity: aula?.aforo || 0,
+      component_type: grupo?.tipo_componente || '',
+      course_hours_teoria: grupo?.horas_teoria || 0,
+      course_hours_practica: grupo?.horas_practica || 0
+    }
+
     const payload = {
-      proposed: {
-        id: 101,
-        teacher_id: 10,
-        school_id: 1,
-        group_id: 1,
-        room_id: 5,
-        series_id: 1,
-        day: 1,
-        start_slot: 3,
-        end_slot: 4,
-        enrollment: 42,
-        room_capacity: 40
-      },
-      existing: [
-        {
-          id: 100,
-          teacher_id: 10,
-          school_id: 1,
-          group_id: 2,
-          room_id: 6,
-          series_id: 2,
-          day: 1,
-          start_slot: 4,
-          end_slot: 5,
-          enrollment: 20,
-          room_capacity: 40
-        }
-      ],
-      state: 'BORRADOR'
+      proposed: proposedBlock,
+      existing: existingBlocks,
+      state: horarioSeleccionado.value.estado || 'BORRADOR',
+      department_sessions: [],
+      distances: []
     }
 
     resultado.value = await api.validaciones.placement(payload)
   } catch (e) {
-    alert('Error: ' + e.message)
+    alert('Error validando: ' + e.message)
   } finally {
     loading.value = false
   }
 }
 
-async function ejecutarComplejo() {
-  loading.value = true
+function getDiaNombre(dia) {
+  return diasSemana[dia - 1] || 'Día ' + dia
+}
+
+watch(() => filtro.value.escuela, () => {
+  filtro.value.periodo = ''
+  filtro.value.serie = ''
+  filtro.value.semestre = ''
+  horarios.value = []
+  horarioSeleccionado.value = null
+  bloquesExistentes.value = []
+  gruposDisponibles.value = []
   resultado.value = null
+})
 
-  try {
-    const payload = {
-      proposed: {
-        id: 201,
-        teacher_id: 10,
-        school_id: 1,
-        group_id: 1,
-        course_id: 101,
-        series_id: 1,
-        room_id: 5,
-        pavilion_id: 2,
-        day: 1,
-        start_slot: 3,
-        end_slot: 4,
-        enrollment: 55,
-        room_capacity: 40
-      },
-      existing: [
-        {
-          id: 200,
-          teacher_id: 10,
-          school_id: 1,
-          group_id: 2,
-          course_id: 102,
-          series_id: 2,
-          room_id: 6,
-          pavilion_id: 1,
-          day: 1,
-          start_slot: 4,
-          end_slot: 5,
-          enrollment: 20,
-          room_capacity: 40
-        }
-      ],
-      distances: [
-        {from_pavilion_id: 1, to_pavilion_id: 2, minutes: 90}
-      ],
-      department_sessions: [
-        {department_id: 7, day: 1, start_slot: 4, end_slot: 5}
-      ],
-      state: 'EN_REAJUSTE'
-    }
+watch(() => filtro.value.periodo, () => {
+  loadHorarios()
+})
 
-    resultado.value = await api.validaciones.placement(payload)
-  } catch (e) {
-    alert('Error: ' + e.message)
-  } finally {
-    loading.value = false
-  }
-}
-
-function getSeverityClass(severity) {
-  const map = {
-    'BLOCKER': 'severity-blocker',
-    'WARNING': 'severity-warning',
-    'INFO': 'severity-info'
-  }
-  return map[severity] || 'severity-info'
-}
+onMounted(loadCatalogos)
 </script>
 
 <style scoped>
@@ -405,73 +569,21 @@ function getSeverityClass(severity) {
   font-size: 0.95rem;
 }
 
-.rules-badge {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 2px solid rgba(255,255,255,0.3);
-}
-
 .page-content {
   padding: 28px;
 }
 
-.stats-grid {
+.validation-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  margin-bottom: 28px;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 20px;
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-  transition: all 0.3s;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-}
-
-.stat-gradient-purple { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-.stat-gradient-red { background: linear-gradient(135deg, #f56565, #e53e3e); color: white; }
-.stat-gradient-amber { background: linear-gradient(135deg, #f6ad55, #dd6b20); color: white; }
-.stat-gradient-blue { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; }
-
-.stat-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.2);
-}
-
-.stat-content .stat-value {
-  display: block;
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.stat-content .stat-label {
-  font-size: 0.85rem;
-  opacity: 0.9;
-}
-
-.main-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
+}
+
+.validation-left,
+.validation-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .card {
@@ -482,9 +594,12 @@ function getSeverityClass(severity) {
 }
 
 .card-header {
-  padding: 20px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid #f1f5f9;
   background: linear-gradient(135deg, #f8fafc 0%, #f0f4ff 100%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-title {
@@ -492,31 +607,61 @@ function getSeverityClass(severity) {
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #1e293b;
   font-weight: 700;
 }
 
 .card-body {
-  padding: 24px;
+  padding: 20px;
 }
 
-.test-description {
-  color: #64748b;
-  margin: 0 0 24px;
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
-.test-actions {
+.form-row:has(.form-group:nth-child(3)) {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-group {
   display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.form-input {
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-actions {
+  margin-top: 16px;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 12px 20px;
   border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -524,11 +669,6 @@ function getSeverityClass(severity) {
   transition: all 0.3s;
   border: none;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.btn-lg {
-  padding: 14px 24px;
-  font-size: 1rem;
 }
 
 .btn-primary {
@@ -541,21 +681,90 @@ function getSeverityClass(severity) {
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
-.btn-secondary {
-  background: linear-gradient(135deg, #11998e, #38ef7d);
-  color: white;
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.btn-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+.btn-lg {
+  padding: 14px 24px;
+  font-size: 1rem;
+}
+
+.empty-message,
+.alert-message {
+  text-align: center;
+  padding: 20px;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.bloques-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bloque-item {
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border-left: 4px solid #667eea;
+}
+
+.bloque-info {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bloque-curso {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.bloque-nombre {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.bloque-grupo {
+  color: #64748b;
+}
+
+.bloque-tipo {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.bloque-tipo.tipo-teoria {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.bloque-tipo.tipo-practica {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.bloque-detalles {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px;
+  padding: 40px;
   color: #64748b;
 }
 
@@ -574,17 +783,20 @@ function getSeverityClass(severity) {
   to { transform: rotate(360deg); }
 }
 
-.result-header {
+.success-state {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 16px;
+  padding: 40px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-radius: 16px;
+  color: #166534;
+  text-align: center;
 }
 
-.result-header h3 {
-  margin: 0;
-  font-size: 1rem;
-  color: #1e293b;
+.success-state svg {
+  color: #22c55e;
+  margin-bottom: 16px;
 }
 
 .result-badge {
@@ -604,52 +816,100 @@ function getSeverityClass(severity) {
   color: #92400e;
 }
 
-.success-state {
+.findings-list {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.finding-item {
+  padding: 14px;
+  border-radius: 12px;
+  border-left: 4px solid;
+}
+
+.finding-item.severity-blocker {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.finding-item.severity-warning {
+  background: #fffbeb;
+  border-color: #f59e0b;
+}
+
+.finding-item.severity-info {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.finding-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-  border-radius: 16px;
-  color: #166534;
-  text-align: center;
+  margin-bottom: 8px;
 }
 
-.success-state p {
-  margin: 12px 0 0;
-  font-weight: 500;
-}
-
-.result-table {
-  background: #f8fafc;
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.result-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.result-table th {
-  text-align: left;
-  padding: 14px 16px;
-  font-size: 0.75rem;
+.finding-rule {
   font-weight: 700;
-  text-transform: uppercase;
-  color: #64748b;
-  background: white;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.result-table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  font-family: monospace;
   font-size: 0.9rem;
+  color: #1e293b;
 }
 
-.result-table tr:last-child td {
-  border-bottom: none;
+.finding-severity {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.finding-severity.severity-blocker {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.finding-severity.severity-warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.finding-severity.severity-info {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.finding-message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.rule-item.blocker {
+  background: #fef2f2;
+}
+
+.rule-item.warning {
+  background: #fffbeb;
+}
+
+.rule-item.info {
+  background: #eff6ff;
 }
 
 .rule-code {
@@ -658,134 +918,9 @@ function getSeverityClass(severity) {
   color: #667eea;
 }
 
-.severity-badge {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.severity-badge.severity-blocker {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.severity-badge.severity-warning {
-  background: #fffbeb;
-  color: #d97706;
-}
-
-.severity-badge.severity-info {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 60px 20px;
-  color: #94a3b8;
-  text-align: center;
-}
-
-.empty-state svg {
-  opacity: 0.5;
-  margin-bottom: 16px;
-}
-
-.rules-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.rule-item {
-  padding: 14px 16px;
-  border-radius: 12px;
-  border-left: 4px solid;
-}
-
-.rule-item.blocker {
-  background: #fef2f2;
-  border-color: #ef4444;
-}
-
-.rule-item.warning {
-  background: #fffbeb;
-  border-color: #f59e0b;
-}
-
-.rule-item.info {
-  background: #eff6ff;
-  border-color: #3b82f6;
-}
-
-.rule-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.rule-item .rule-code {
-  font-weight: 700;
-  font-family: monospace;
-  font-size: 0.85rem;
-}
-
-.rule-item p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #64748b;
-}
-
-.severity-pill {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.severity-pill.blocker {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.severity-pill.warning {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.severity-pill.info {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
 @media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .main-grid {
+  .validation-grid {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-  .page-subtitle {
-    margin: 4px 0 0 0;
-  }
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .test-actions {
-    flex-direction: column;
   }
 }
 </style>
