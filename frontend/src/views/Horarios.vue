@@ -246,7 +246,7 @@
             <select v-model="horarioForm.id_serie" class="form-input">
               <option value="">-- Seleccionar --</option>
               <option v-for="s in getSeriesFiltradas()" :key="s.id_serie" :value="s.id_serie">
-                {{ s.numero_ciclo }}-{{ Number(s.subciclo) === 1 ? 'I' : 'II' }}
+                {{ s.numero_ciclo }}-{{ Number(s.subciclo) === 1 ? 'I' : 'II' }} ({{ s.codigo_plan }})
               </option>
             </select>
           </div>
@@ -443,19 +443,12 @@ const aulasDisponibles = computed(() => {
 })
 
 function getSeriesFiltradas() {
-  const result = []
-  const seen = new Set()
-  if (!horarioForm.value.id_escuela) return result
+  if (!horarioForm.value.id_escuela) return []
   const escuelaId = Number(horarioForm.value.id_escuela)
-  for (const s of series.value) {
-    if (seen.has(s.id_serie)) continue
+  return series.value.filter(s => {
     const plan = plans.value.find(p => p.id_plan === s.id_plan)
-    if (plan && plan.id_escuela === escuelaId) {
-      seen.add(s.id_serie)
-      result.push(s)
-    }
-  }
-  return result
+    return plan && plan.id_escuela === escuelaId
+  })
 }
 
 watch(() => horarioForm.value.id_escuela, () => {
@@ -500,12 +493,7 @@ async function loadCatalogos() {
     ])
     periodos.value = p
     escuelas.value = e
-    const seenSeries = new Set()
-    series.value = s.filter(ser => {
-      if (seenSeries.has(ser.id_serie)) return false
-      seenSeries.add(ser.id_serie)
-      return true
-    })
+    series.value = s
     aulas.value = a
     const seenPlans = new Set()
     plans.value = pl.filter(plan => {

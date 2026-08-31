@@ -18,7 +18,7 @@ type RepositoryInterface interface {
 	ListAulas(ctx context.Context) ([]Aula, error)
 	ListUsuarios(ctx context.Context) ([]Usuario, error)
 	ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error)
-	ListSeries(ctx context.Context) ([]Serie, error)
+	ListSeries(ctx context.Context, idEscuela int) ([]Serie, error)
 	ListCursos(ctx context.Context, idEscuela int) ([]Curso, error)
 	ListDocentes(ctx context.Context) ([]Docente, error)
 	ListPeriodos(ctx context.Context) ([]PeriodoAcademico, error)
@@ -202,8 +202,18 @@ func (r Repository) ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error
 	return items, rows.Err()
 }
 
-func (r Repository) ListSeries(ctx context.Context) ([]Serie, error) {
-	rows, err := r.db.Query(ctx, `SELECT id_serie, id_plan, numero_ciclo, subciclo FROM serie ORDER BY id_plan, numero_ciclo, subciclo`)
+func (r Repository) ListSeries(ctx context.Context, idEscuela int) ([]Serie, error) {
+	query := `SELECT s.id_serie, s.id_plan, s.numero_ciclo, s.subciclo, p.codigo_plan
+		FROM serie s
+		JOIN plan_estudio p ON p.id_plan = s.id_plan`
+	var args []interface{}
+	if idEscuela > 0 {
+		query += ` WHERE p.id_escuela = $1`
+		args = append(args, idEscuela)
+	}
+	query += ` ORDER BY p.id_escuela, s.numero_ciclo, s.subciclo`
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +222,7 @@ func (r Repository) ListSeries(ctx context.Context) ([]Serie, error) {
 	items := make([]Serie, 0)
 	for rows.Next() {
 		var item Serie
-		if err := rows.Scan(&item.ID, &item.IDPlan, &item.NumeroCiclo, &item.Subciclo); err != nil {
+		if err := rows.Scan(&item.ID, &item.IDPlan, &item.NumeroCiclo, &item.Subciclo, &item.CodigoPlan); err != nil {
 			return nil, err
 		}
 		items = append(items, item)

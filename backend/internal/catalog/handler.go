@@ -169,7 +169,16 @@ func (h Handler) PlanesEstudio(c *gin.Context) {
 }
 
 func (h Handler) Series(c *gin.Context) {
-	data, err := h.repo.ListSeries(c.Request.Context())
+	escuela := c.Query("escuela")
+	idEscuela := 0
+	if escuela != "" {
+		var err error
+		idEscuela, err = strconv.Atoi(escuela)
+		if err != nil {
+			idEscuela = 0
+		}
+	}
+	data, err := h.repo.ListSeries(c.Request.Context(), idEscuela)
 	respond(c, data, err)
 }
 

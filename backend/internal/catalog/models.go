@@ -45,10 +45,11 @@ type PlanEstudio struct {
 }
 
 type Serie struct {
-	ID          int `json:"id_serie"`
-	IDPlan      int `json:"id_plan"`
-	NumeroCiclo int `json:"numero_ciclo"`
-	Subciclo    int `json:"subciclo"`
+	ID          int    `json:"id_serie"`
+	IDPlan      int    `json:"id_plan"`
+	NumeroCiclo int    `json:"numero_ciclo"`
+	Subciclo    int    `json:"subciclo"`
+	CodigoPlan  string `json:"codigo_plan,omitempty"`
 }
 
 type Curso struct {
