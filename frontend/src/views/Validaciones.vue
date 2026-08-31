@@ -116,15 +116,15 @@
               <p>Ejecutando validación...</p>
             </div>
 
-            <template v-else-if="resultado">
+            <template v-else-if="resultado && resultado.findings">
               <div class="result-header">
                 <h3>Resultado de la Validación</h3>
-                <span class="result-badge" :class="resultado.length === 0 ? 'success' : 'has-issues'">
-                  {{ resultado.length === 0 ? 'Sin problemas' : resultado.length + ' hallazgo(s)' }}
+                <span class="result-badge" :class="resultado.findings.length === 0 ? 'success' : 'has-issues'">
+                  {{ resultado.findings.length === 0 ? 'Sin problemas' : resultado.findings.length + ' hallazgo(s)' }}
                 </span>
               </div>
 
-              <div v-if="resultado.length === 0" class="success-state">
+              <div v-if="resultado.findings.length === 0" class="success-state">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                   <polyline points="22 4 12 14.01 9 11.01"/>
@@ -142,7 +142,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(finding, idx) in resultado" :key="idx">
+                    <tr v-for="(finding, idx) in resultado.findings" :key="idx">
                       <td><span class="rule-code">{{ finding.rule }}</span></td>
                       <td>
                         <span class="severity-badge" :class="getSeverityClass(finding.severity)">

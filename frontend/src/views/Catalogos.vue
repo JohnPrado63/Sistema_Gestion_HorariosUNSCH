@@ -320,8 +320,17 @@
 
         <div v-show="activeTab === 'aulas'" class="tab-content">
           <div class="content-header">
-            <h2>Aulas</h2>
-            <p>Gestionar disponibilidad de aulas en el sistema</p>
+            <div>
+              <h2>Aulas</h2>
+              <p>Gestionar disponibilidad de aulas en el sistema</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevaAula">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nueva Aula
+            </button>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -354,8 +363,28 @@
                   </td>
                   <td class="actions-cell">
                     <button
-                      v-if="item.activo"
+                      class="btn btn-icon-sm"
+                      @click="openEditarAula(item)"
+                      title="Editar aula"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button
                       class="btn btn-icon-sm btn-danger"
+                      @click="eliminarAula(item)"
+                      title="Eliminar aula"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                    <button
+                      v-if="item.activo"
+                      class="btn btn-icon-sm btn-warning"
                       @click="toggleAulaActivo(item)"
                       title="Desactivar aula"
                     >
@@ -457,6 +486,67 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal Aula -->
+      <div v-if="showModalAula" class="modal-overlay" @click.self="showModalAula = false">
+        <div class="modal modal-md">
+          <div class="modal-header">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              {{ editingAula ? 'Editar' : 'Nueva' }} Aula
+            </h2>
+            <button class="btn btn-icon" @click="showModalAula = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Código del Aula *</label>
+              <input v-model="aulaForm.codigo" type="text" class="form-input" placeholder="Ej: H-201">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pabellón *</label>
+              <select v-model="aulaForm.id_pabellon" class="form-input">
+                <option value="">-- Seleccionar pabellón --</option>
+                <option v-for="p in pabellones" :key="p.id_pabellon" :value="p.id_pabellon">
+                  {{ p.codigo }} - {{ p.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de Aula *</label>
+              <select v-model="aulaForm.tipo" class="form-input">
+                <option value="TEORIA">Teoría</option>
+                <option value="PRACTICA">Práctica</option>
+                <option value="LABORATORIO">Laboratorio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Aforo (número de estudiantes) *</label>
+              <input v-model="aulaForm.aforo" type="number" min="1" class="form-input" placeholder="Ej: 40">
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input v-model="aulaForm.es_compartida" type="checkbox">
+                <span class="checkbox-custom"></span>
+                Aula compartida entre escuelas
+              </label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalAula = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarAula" :disabled="saving">
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -493,6 +583,16 @@ const catalogos = ref({
 
 const allAulas = ref([])
 const pabellones = ref([])
+
+const showModalAula = ref(false)
+const editingAula = ref(null)
+const aulaForm = ref({
+  codigo: '',
+  id_pabellon: '',
+  tipo: 'TEORIA',
+  aforo: '',
+  es_compartida: false
+})
 
 async function loadAll() {
   loading.value = true
@@ -634,6 +734,68 @@ async function toggleAulaActivo(aula) {
   if (!confirm(`¿${aula.activo ? 'Desactivar' : 'Activar'} el aula "${aula.codigo}"?`)) return
   try {
     await api.aulas.setActivo(aula.id_aula, !aula.activo)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+function openNuevaAula() {
+  editingAula.value = null
+  aulaForm.value = {
+    codigo: '',
+    id_pabellon: '',
+    tipo: 'TEORIA',
+    afecto: '',
+    es_compartida: false
+  }
+  showModalAula.value = true
+}
+
+function openEditarAula(aula) {
+  editingAula.value = aula
+  aulaForm.value = {
+    codigo: aula.codigo,
+    id_pabellon: aula.id_pabellon,
+    tipo: aula.tipo,
+    afecto: aula.aforo,
+    es_compartida: aula.es_compartida
+  }
+  showModalAula.value = true
+}
+
+async function guardarAula() {
+  if (!aulaForm.value.codigo || !aulaForm.value.id_pabellon || !aulaForm.value.aforo) {
+    alert('Completa todos los campos requeridos')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      codigo: aulaForm.value.codigo,
+      id_pabellon: parseInt(aulaForm.value.id_pabellon),
+      tipo: aulaForm.value.tipo,
+      afecto: parseInt(aulaForm.value.aforo),
+      es_compartida: aulaForm.value.es_compartida
+    }
+    if (editingAula.value) {
+      await api.aulas.update(editingAula.value.id_aula, data)
+    } else {
+      await api.aulas.create(data)
+    }
+    showModalAula.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarAula(aula) {
+  if (!confirm(`¿Eliminar el aula "${aula.codigo}"? Esta accion no se puede deshacer.`)) return
+  try {
+    await api.aulas.delete(aula.id_aula)
     loadAll()
   } catch (e) {
     alert('Error: ' + e.message)
@@ -977,6 +1139,15 @@ onMounted(loadAll)
 
 .btn-success:hover {
   background: #16a34a !important;
+}
+
+.btn-warning {
+  background: #f59e0b !important;
+  color: white !important;
+}
+
+.btn-warning:hover {
+  background: #d97706 !important;
 }
 
 .content-header {

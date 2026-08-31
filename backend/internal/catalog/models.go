@@ -31,6 +31,21 @@ type Aula struct {
 	Activo       bool   `json:"activo"`
 }
 
+type CreateAulaInput struct {
+	IDPabellon   int    `json:"id_pabellon" binding:"required"`
+	Codigo       string `json:"codigo" binding:"required"`
+	Tipo         string `json:"tipo" binding:"required,oneof=TEORIA PRACTICA LABORATORIO"`
+	Aforo        int    `json:"aforo" binding:"required,min=1"`
+	EsCompartida bool   `json:"es_compartida"`
+}
+
+type UpdateAulaInput struct {
+	Codigo       string `json:"codigo"`
+	Tipo         string `json:"tipo"`
+	Aforo        int    `json:"aforo"`
+	EsCompartida *bool  `json:"es_compartida"`
+}
+
 type Usuario struct {
 	ID     int    `json:"id_usuario"`
 	Nombre string `json:"nombre"`

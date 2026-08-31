@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -18,6 +19,9 @@ type RepositoryInterface interface {
 	ListAulas(ctx context.Context) ([]Aula, error)
 	ListAllAulas(ctx context.Context) ([]Aula, error)
 	SetAulaActivo(ctx context.Context, idAula int, activo bool) error
+	CreateAula(ctx context.Context, input CreateAulaInput) (*Aula, error)
+	UpdateAula(ctx context.Context, id int, input UpdateAulaInput) (*Aula, error)
+	DeleteAula(ctx context.Context, id int) error
 	ListUsuarios(ctx context.Context) ([]Usuario, error)
 	ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error)
 	ListSeries(ctx context.Context, idEscuela int) ([]Serie, error)
@@ -186,6 +190,92 @@ func (r Repository) ListAllAulas(ctx context.Context) ([]Aula, error) {
 func (r Repository) SetAulaActivo(ctx context.Context, idAula int, activo bool) error {
 	_, err := r.db.Exec(ctx, `UPDATE aula SET activo = $1 WHERE id_aula = $2`, activo, idAula)
 	return err
+}
+
+func (r Repository) CreateAula(ctx context.Context, input CreateAulaInput) (*Aula, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO aula (id_pabellon, codigo, tipo, aforo, es_compartida, activo)
+		VALUES ($1, $2, $3::tipo_aula_enum, $4, $5, true)
+		RETURNING id_aula
+	`, input.IDPabellon, input.Codigo, input.Tipo, input.Aforo, input.EsCompartida).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var aula Aula
+	err = r.db.QueryRow(ctx, `
+		SELECT id_aula, id_pabellon, id_escuela, codigo, tipo::text, aula.aforo, aula.es_compartida, aula.activo
+		FROM aula WHERE id_aula = $1
+	`, id).Scan(&aula.ID, &aula.IDPabellon, &aula.IDEscuela, &aula.Codigo, &aula.Tipo, &aula.Aforo, &aula.EsCompartida, &aula.Activo)
+	if err != nil {
+		return nil, err
+	}
+	return &aula, nil
+}
+
+func (r Repository) UpdateAula(ctx context.Context, id int, input UpdateAulaInput) (*Aula, error) {
+	query := `UPDATE aula SET `
+	args := []interface{}{}
+	argIdx := 1
+	setClauses := []string{}
+
+	if input.Codigo != "" {
+		setClauses = append(setClauses, fmt.Sprintf("codigo = $%d", argIdx))
+		args = append(args, input.Codigo)
+		argIdx++
+	}
+	if input.Tipo != "" {
+		setClauses = append(setClauses, fmt.Sprintf("tipo = $%d::tipo_aula_enum", argIdx))
+		args = append(args, input.Tipo)
+		argIdx++
+	}
+	if input.Aforo > 0 {
+		setClauses = append(setClauses, fmt.Sprintf("aforo = $%d", argIdx))
+		args = append(args, input.Aforo)
+		argIdx++
+	}
+	if input.EsCompartida != nil {
+		setClauses = append(setClauses, fmt.Sprintf("es_compartida = $%d", argIdx))
+		args = append(args, *input.EsCompartida)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, fmt.Errorf("no hay campos para actualizar")
+	}
+
+	query += strings.Join(setClauses, ", ") + fmt.Sprintf(" WHERE id_aula = $%d", argIdx)
+	args = append(args, id)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	var aula Aula
+	err = r.db.QueryRow(ctx, `
+		SELECT id_aula, id_pabellon, id_escuela, codigo, tipo::text, aula.aforo, aula.es_compartida, aula.activo
+		FROM aula WHERE id_aula = $1
+	`, id).Scan(&aula.ID, &aula.IDPabellon, &aula.IDEscuela, &aula.Codigo, &aula.Tipo, &aula.Aforo, &aula.EsCompartida, &aula.Activo)
+	if err != nil {
+		return nil, err
+	}
+	return &aula, nil
+}
+
+func (r Repository) DeleteAula(ctx context.Context, id int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM aula WHERE id_aula = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("aula no encontrada")
+	}
+	return nil
 }
 
 func (r Repository) ListUsuarios(ctx context.Context) ([]Usuario, error) {

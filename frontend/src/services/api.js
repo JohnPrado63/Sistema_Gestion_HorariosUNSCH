@@ -102,6 +102,9 @@ export const api = {
   aulas: {
     list: () => api.get('/aulas'),
     listAll: () => api.get('/aulas/todas'),
+    create: (data) => api.post('/aulas', data),
+    update: (id, data) => api.put(`/aulas/${id}`, data),
+    delete: (id) => api.delete(`/aulas/${id}`),
     setActivo: (id, activo) => api.put(`/aulas/${id}/activo`, { activo })
   },
 

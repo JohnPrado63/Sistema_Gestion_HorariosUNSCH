@@ -188,6 +188,67 @@ func (h Handler) SetAulaActivo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Aula actualizada correctamente"})
 }
 
+func (h Handler) CreateAula(c *gin.Context) {
+	var input CreateAulaInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	aula, err := h.repo.CreateAula(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, aula)
+}
+
+func (h Handler) UpdateAula(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input UpdateAulaInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	aula, err := h.repo.UpdateAula(c.Request.Context(), id, input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if aula == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Aula no encontrada"})
+		return
+	}
+
+	c.JSON(http.StatusOK, aula)
+}
+
+func (h Handler) DeleteAula(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteAula(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Aula eliminada correctamente"})
+}
+
 func (h Handler) Usuarios(c *gin.Context) {
 	data, err := h.repo.ListUsuarios(c.Request.Context())
 	respond(c, data, err)
