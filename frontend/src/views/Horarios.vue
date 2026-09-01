@@ -129,6 +129,16 @@
                 </svg>
                 Exportar PDF
               </button>
+              <button class="btn btn-primary btn-sm" @click="exportarTodosLosHorarios">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10 9 9 9 8 9"/>
+                </svg>
+                Exportar Todo
+              </button>
             </div>
           </div>
 
@@ -402,9 +412,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import api from '../services/api'
-import { exportarHorarioPDF } from '../utils/pdfExport'
+import html2canvas from 'html2canvas'
+import { generarPDFConImagenes } from '../utils/pdfExport'
 
 const loading = ref(false)
 const error = ref('')
@@ -972,9 +983,9 @@ async function exportarPDF() {
 
   const escuelaNombre = getEscuelaNombre(selectedHorario.value.id_escuela)
   const periodoP = periodos.value.find(p => p.id_periodo === selectedHorario.value.id_periodo)
-  const periodoCodigo = periodoP ? `${periodoP.codigo}-${selectedHorario.value.semestre}` : `Periodo ${selectedHorario.value.id_periodo}`
+  const periodoCodigo = periodoP ? periodoP.codigo : `Periodo ${selectedHorario.value.id_periodo}`
   const serieNum = getSerieNumero(selectedHorario.value.id_serie)
-  const serieDescripcion = getSerieDescripcion(serieNum, selectedHorario.value.semestre)
+  const semestre = selectedHorario.value.semestre
 
   try {
     await exportarHorarioPDF(
@@ -982,11 +993,95 @@ async function exportarPDF() {
       bloques,
       escuelaNombre,
       periodoCodigo,
-      serieDescripcion
+      serieNum,
+      semestre
     )
   } catch (e) {
     console.error('Error exportando PDF:', e)
     alert('Error al exportar PDF: ' + e.message)
+  }
+}
+
+async function capturarGrilla() {
+  const grillaElement = document.getElementById('grilla-horario-export')
+  if (!grillaElement) return null
+
+  const canvas = await html2canvas(grillaElement, {
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff'
+  })
+
+  return canvas.toDataURL('image/png')
+}
+
+async function exportarTodosLosHorarios() {
+  if (!selectedPeriodo.value) {
+    alert('Selecciona un periodo primero')
+    return
+  }
+
+  if (!selectedEscuela.value) {
+    alert('Selecciona una escuela primero')
+    return
+  }
+
+  const periodoId = Number(selectedPeriodo.value)
+  const escuelaId = Number(selectedEscuela.value)
+
+  const horariosFiltrados = horarios.value.filter(h =>
+    h.id_periodo === periodoId && h.id_escuela === escuelaId
+  )
+
+  if (horariosFiltrados.length === 0) {
+    alert('No hay horarios para exportar en esta escuela y periodo')
+    return
+  }
+
+  const horariosConBloques = horariosFiltrados.map(h => ({
+    horario: h,
+    serieNumero: getSerieNumero(h.id_serie),
+    semestre: h.semestre
+  }))
+
+  horariosConBloques.sort((a, b) => a.serieNumero - b.serieNumero)
+
+  const escolaNome = getEscuelaNombre(escuelaId)
+  const periodoP = periodos.value.find(p => p.id_periodo === periodoId)
+  const periodoCodigo = periodoP ? periodoP.codigo : `Periodo ${periodoId}`
+
+  try {
+    const originalSelected = selectedHorario.value
+
+    const paginas = []
+
+    for (const item of horariosConBloques) {
+      selectedHorario.value = item.horario
+      await loadBloquesHorario(item.horario.id_horario)
+      await nextTick()
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const imgData = await capturarGrilla()
+
+      paginas.push({
+        horarioId: item.horario.id_horario,
+        serieNumero: item.serieNumero,
+        semestre: item.semestre,
+        estado: item.horario.estado,
+        imgData: imgData
+      })
+    }
+
+    selectedHorario.value = originalSelected
+    if (originalSelected) {
+      await loadBloquesHorario(originalSelected.id_horario)
+    }
+
+    generarPDFConImagenes(paginas, escolaNome, periodoCodigo)
+  } catch (e) {
+    console.error('Error exportando todos los horarios:', e)
+    alert('Error al exportar: ' + e.message)
   }
 }
 
