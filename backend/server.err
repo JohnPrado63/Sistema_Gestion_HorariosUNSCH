@@ -1,9 +1,0 @@
-2026/08/05 23:42:21 config: checking .env at D:\JOHN\OTI\backend\.env
-2026/08/05 23:42:21 config: checking .env at D:\JOHN\OTI\.env
-2026/08/05 23:42:21 config: .env found, attempting load...
-2026/08/05 23:42:21 config: loaded .env from D:\JOHN\OTI\.env
-2026/08/05 23:42:21 auth: Redis connected successfully
-2026/08/05 23:42:21 frontend: using ../frontend/dist
-2026/08/05 23:42:21 api listening on http://localhost:8080
-2026/08/05 23:42:21 server failed: listen tcp :8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.
-exit status 1

@@ -121,10 +121,18 @@
                 </svg>
                 Verificar
               </button>
+              <button class="btn btn-secondary btn-sm" @click="exportarPDF">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Exportar PDF
+              </button>
             </div>
           </div>
 
-          <div class="grilla-wrapper">
+          <div class="grilla-wrapper" id="grilla-horario-export">
             <table class="grilla-table">
               <thead>
                 <tr>
@@ -396,6 +404,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import api from '../services/api'
+import { exportarHorarioPDF } from '../utils/pdfExport'
 
 const loading = ref(false)
 const error = ref('')
@@ -947,6 +956,38 @@ async function crearBloque() {
 async function verificarConflictos() {
   if (!selectedHorario.value) return
   alert('Verificación de conflictos iniciada para el horario ' + selectedHorario.value.id_horario)
+}
+
+async function exportarPDF() {
+  if (!selectedHorario.value) {
+    alert('Selecciona un horario primero')
+    return
+  }
+
+  const bloques = getBloquesHorario()
+  if (bloques.length === 0) {
+    alert('Este horario no tiene bloques registrados')
+    return
+  }
+
+  const escuelaNombre = getEscuelaNombre(selectedHorario.value.id_escuela)
+  const periodoP = periodos.value.find(p => p.id_periodo === selectedHorario.value.id_periodo)
+  const periodoCodigo = periodoP ? `${periodoP.codigo}-${selectedHorario.value.semestre}` : `Periodo ${selectedHorario.value.id_periodo}`
+  const serieNum = getSerieNumero(selectedHorario.value.id_serie)
+  const serieDescripcion = getSerieDescripcion(serieNum, selectedHorario.value.semestre)
+
+  try {
+    await exportarHorarioPDF(
+      selectedHorario.value,
+      bloques,
+      escuelaNombre,
+      periodoCodigo,
+      serieDescripcion
+    )
+  } catch (e) {
+    console.error('Error exportando PDF:', e)
+    alert('Error al exportar PDF: ' + e.message)
+  }
 }
 
 async function eliminarBloque(bloque) {
