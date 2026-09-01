@@ -39,6 +39,7 @@ type RepositoryInterface interface {
 	ListBitacoraAuditoria(ctx context.Context) ([]BitacoraAuditoria, error)
 	CreateHorario(ctx context.Context, input CreateHorarioInput) (*Horario, error)
 	ExistsHorario(ctx context.Context, idEscuela, idPeriodo int, idSerie *int, semestre *string) (bool, error)
+	GenerateHorarios(ctx context.Context, input GenerateHorariosInput) (*GenerateHorariosResult, error)
 	DeleteHorario(ctx context.Context, id int) error
 	VerificarConflictoBloque(ctx context.Context, input CreateBloqueInput) ([]ConflictoBloque, error)
 	CreateBloque(ctx context.Context, input CreateBloqueInput) (*BloqueHorario, error)
@@ -645,6 +646,84 @@ func (r Repository) CreateHorario(ctx context.Context, input CreateHorarioInput)
 		return nil, err
 	}
 	return &h, nil
+}
+
+func (r Repository) GenerateHorarios(ctx context.Context, input GenerateHorariosInput) (*GenerateHorariosResult, error) {
+	subciclo := 1
+	if input.Semestre == "II" {
+		subciclo = 2
+	}
+
+	rows, err := r.db.Query(ctx, `
+		SELECT s.id_serie, s.numero_ciclo
+		FROM serie s
+		JOIN plan_estudio p ON p.id_plan = s.id_plan
+		WHERE p.id_escuela = $1 AND s.subciclo = $2
+		ORDER BY s.numero_ciclo
+	`, input.IDEscuela, subciclo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var series []struct {
+		ID           int
+		NumeroCiclo int
+	}
+	for rows.Next() {
+		var s struct {
+			ID           int
+			NumeroCiclo int
+		}
+		if err := rows.Scan(&s.ID, &s.NumeroCiclo); err != nil {
+			continue
+		}
+		series = append(series, s)
+	}
+
+	result := &GenerateHorariosResult{
+		Horarios: []Horario{},
+	}
+
+	semestre := input.Semestre
+
+	for _, serie := range series {
+		idSerie := serie.ID
+
+		existe, err := r.ExistsHorario(ctx, input.IDEscuela, input.IDPeriodo, &idSerie, &semestre)
+		if err != nil {
+			continue
+		}
+
+		if existe {
+			result.Existentes++
+			var h Horario
+			err = r.db.QueryRow(ctx, `
+				SELECT id_horario, id_escuela, id_periodo, id_serie, semestre, estado::text, version_reajuste, fecha_actualizacion
+				FROM horario
+				WHERE id_escuela = $1 AND id_periodo = $2 AND id_serie = $3 AND semestre = $4
+			`, input.IDEscuela, input.IDPeriodo, idSerie, semestre).Scan(&h.ID, &h.IDEscuela, &h.IDPeriodo, &h.IDSerie, &h.Semestre, &h.Estado, &h.VersionReajuste, &h.FechaActualizacion)
+			if err == nil {
+				result.Horarios = append(result.Horarios, h)
+			}
+			continue
+		}
+
+		h, err := r.CreateHorario(ctx, CreateHorarioInput{
+			IDEscuela: input.IDEscuela,
+			IDPeriodo: input.IDPeriodo,
+			IDSerie:   &idSerie,
+			Semestre:  &semestre,
+		})
+		if err != nil {
+			continue
+		}
+
+		result.Creados++
+		result.Horarios = append(result.Horarios, *h)
+	}
+
+	return result, nil
 }
 
 func (r Repository) DeleteHorario(ctx context.Context, id int) error {

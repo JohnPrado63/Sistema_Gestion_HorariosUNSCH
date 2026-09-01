@@ -370,6 +370,22 @@ func (h Handler) CreateHorario(c *gin.Context) {
 	c.JSON(http.StatusCreated, hdr)
 }
 
+func (h Handler) GenerateHorarios(c *gin.Context) {
+	var input GenerateHorariosInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	result, err := h.repo.GenerateHorarios(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 func (h Handler) DeleteHorario(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)

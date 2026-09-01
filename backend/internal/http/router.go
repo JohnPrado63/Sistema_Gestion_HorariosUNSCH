@@ -91,6 +91,7 @@ func NewRouter(db *pgxpool.Pool) *gin.Engine {
 		api.DELETE("/horarios/:id", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.DeleteHorario)
 		api.GET("/horarios/:id", cat.GetHorario)
 		api.GET("/horarios/:id/bloques", cat.GetBloquesByHorario)
+		api.POST("/horarios/generar", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.GenerateHorarios)
 		api.GET("/grupos-horario", cat.GetGruposParaHorario)
 		api.GET("/bloques", cat.Bloques)
 		api.POST("/bloques", authHandler(), usuariosHandler("ADMIN_TI", "JEFE_DEPTO", "DGA", "DIRECTOR_ESCUELA", "COORDINADOR"), cat.CreateBloque)

@@ -182,6 +182,18 @@ type CreateHorarioInput struct {
 	Semestre   *string `json:"semestre"`
 }
 
+type GenerateHorariosInput struct {
+	IDEscuela int    `json:"id_escuela" binding:"required"`
+	IDPeriodo int    `json:"id_periodo" binding:"required"`
+	Semestre  string `json:"semestre" binding:"required"`
+}
+
+type GenerateHorariosResult struct {
+	Creados int      `json:"creados"`
+	Existentes int   `json:"existentes"`
+	Horarios []Horario `json:"horarios"`
+}
+
 type CreateBloqueInput struct {
 	IDHorario  int    `json:"id_horario" binding:"required"`
 	IDGrupo    int    `json:"id_grupo" binding:"required"`

@@ -33,6 +33,12 @@
           </svg>
           Nuevo Horario
         </button>
+        <button class="btn btn-secondary" @click="generarHorarios">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+          Generar Horarios
+        </button>
       </div>
     </header>
 
@@ -764,6 +770,48 @@ async function crearHorario() {
     console.log('Despues de loadHorarios - horarios.value:', horarios.value)
   } catch (e) {
     console.error('Error creando horario:', e)
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function generarHorarios() {
+  if (!selectedEscuela.value) {
+    alert('Selecciona una escuela primero')
+    return
+  }
+
+  if (!selectedPeriodo.value) {
+    alert('Selecciona un periodo primero')
+    return
+  }
+
+  const periodoP = periodos.value.find(p => p.id_periodo === Number(selectedPeriodo.value))
+  if (!periodoP) {
+    alert('Periodo no encontrado')
+    return
+  }
+
+  const semestre = periodoP.codigo.includes('-I') ? 'I' : 'II'
+
+  saving.value = true
+  try {
+    const result = await api.horarios.generate({
+      id_escuela: Number(selectedEscuela.value),
+      id_periodo: Number(selectedPeriodo.value),
+      semestre: semestre
+    })
+
+    await loadHorarios()
+
+    let mensaje = `Horarios generados: ${result.creados} creados, ${result.existentes} ya existían`
+    if (result.horarios && result.horarios.length > 0) {
+      mensaje += `\nTotal: ${result.horarios.length} horarios`
+    }
+    alert(mensaje)
+  } catch (e) {
+    console.error('Error generando horarios:', e)
     alert('Error: ' + e.message)
   } finally {
     saving.value = false

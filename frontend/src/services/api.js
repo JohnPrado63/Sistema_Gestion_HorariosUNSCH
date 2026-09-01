@@ -112,6 +112,7 @@ export const api = {
     list: () => api.get('/horarios'),
     get: (id) => api.get(`/horarios/${id}`),
     create: (data) => api.post('/horarios', data),
+    generate: (data) => api.post('/horarios/generar', data),
     delete: (id) => api.delete(`/horarios/${id}`),
     bloques: (id) => api.get(`/horarios/${id}/bloques`)
   },
