@@ -882,6 +882,11 @@ async function verificarBloque() {
     return
   }
 
+  if (bloqueForm.value.slot_fin <= bloqueForm.value.slot_inicio) {
+    conflictoError.value = [{ tipo: 'VALIDACION', mensaje: 'La hora fin debe ser mayor que la hora inicio', severity: 'blocker' }]
+    return
+  }
+
   saving.value = true
   conflictoError.value = null
 
@@ -918,6 +923,11 @@ async function verificarBloque() {
 async function crearBloque() {
   if (!bloqueForm.value.id_grupo || !bloqueForm.value.id_aula) {
     alert('Selecciona grupo y aula')
+    return
+  }
+
+  if (bloqueForm.value.slot_fin <= bloqueForm.value.slot_inicio) {
+    conflictoError.value = [{ tipo: 'VALIDACION', mensaje: 'La hora fin debe ser mayor que la hora inicio', severity: 'blocker' }]
     return
   }
 
