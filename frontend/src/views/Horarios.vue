@@ -351,6 +351,11 @@
             </select>
           </div>
 
+          <div v-if="grupoInfo" class="curso-info">
+            <span class="info-badge theory">Teoría: {{ grupoInfo.horas_teoria }}h</span>
+            <span class="info-badge practice">Práctica: {{ grupoInfo.horas_practica }}h</span>
+          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Día</label>
@@ -466,6 +471,11 @@ const horasLista = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00
 const aulasDisponibles = computed(() => {
   if (!filtroAula.value) return aulas.value
   return aulas.value.filter(a => a.id_aula === parseInt(filtroAula.value))
+})
+
+const grupoInfo = computed(() => {
+  if (!bloqueForm.value.id_grupo) return null
+  return gruposDisponibles.value.find(g => g.id_grupo === parseInt(bloqueForm.value.id_grupo)) || null
 })
 
 function getSeriesFiltradas() {
@@ -1610,6 +1620,7 @@ onMounted(() => {
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp:2;
   -webkit-box-orient: vertical;
 }
 
@@ -1795,6 +1806,39 @@ onMounted(() => {
 
 .info-divider {
   color: #cbd5e1;
+}
+/*
+ Al seleccionar un curso se muestra la cantidad de horas teoricas y practicas que tiene 
+ */
+
+.curso-info {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+  border-radius: 8px;
+  border: 1px solid #fde047;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.info-badge.theory {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.info-badge.practice {
+  background: #dcfce7;
+  color: #166534;
 }
 
 .modal-overlay {
