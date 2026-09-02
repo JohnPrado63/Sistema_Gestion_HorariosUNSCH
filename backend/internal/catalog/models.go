@@ -20,6 +20,18 @@ type Escuela struct {
 	Nombre         string `json:"nombre"`
 }
 
+type CreateEscuelaInput struct {
+	IDFacultad     int    `json:"id_facultad" binding:"required"`
+	IDDepartamento int    `json:"id_departamento" binding:"required"`
+	Nombre         string `json:"nombre" binding:"required"`
+}
+
+type UpdateEscuelaInput struct {
+	IDFacultad     *int   `json:"id_facultad"`
+	IDDepartamento *int   `json:"id_departamento"`
+	Nombre         string `json:"nombre"`
+}
+
 type Aula struct {
 	ID           int    `json:"id_aula"`
 	IDPabellon   int    `json:"id_pabellon"`
@@ -60,6 +72,18 @@ type PlanEstudio struct {
 	Nombre    string `json:"nombre"`
 }
 
+type CreatePlanEstudioInput struct {
+	IDEscuela int    `json:"id_escuela" binding:"required"`
+	Codigo    string `json:"codigo_plan" binding:"required"`
+	Nombre    string `json:"nombre" binding:"required"`
+}
+
+type UpdatePlanEstudioInput struct {
+	IDEscuela *int   `json:"id_escuela"`
+	Codigo    string `json:"codigo_plan"`
+	Nombre    string `json:"nombre"`
+}
+
 type Serie struct {
 	ID          int    `json:"id_serie"`
 	IDPlan      int    `json:"id_plan"`
@@ -80,9 +104,43 @@ type Curso struct {
 	EscuelaNombre string `json:"escuela_nombre,omitempty"`
 }
 
+type CreateCursoInput struct {
+	IDSerie       int    `json:"id_serie" binding:"required"`
+	Codigo        string `json:"codigo" binding:"required"`
+	Nombre        string `json:"nombre" binding:"required"`
+	Creditos      int    `json:"creditos" binding:"required,min=1"`
+	HorasTeoria   int    `json:"horas_teoria" binding:"required,min=0"`
+	HorasPractica int    `json:"horas_practica" binding:"required,min=0"`
+}
+
+type UpdateCursoInput struct {
+	IDSerie       *int   `json:"id_serie"`
+	Codigo        string `json:"codigo"`
+	Nombre        string `json:"nombre"`
+	Creditos      *int   `json:"creditos"`
+	HorasTeoria   *int   `json:"horas_teoria"`
+	HorasPractica *int   `json:"horas_practica"`
+}
+
 type Docente struct {
 	ID             int    `json:"id_docente"`
 	IDDepartamento int    `json:"id_departamento"`
+	CodigoPlaza    string `json:"codigo_plaza"`
+	Nombres        string `json:"nombres"`
+	Apellidos      string `json:"apellidos"`
+	Email          string `json:"email"`
+}
+
+type CreateDocenteInput struct {
+	IDDepartamento int    `json:"id_departamento" binding:"required"`
+	CodigoPlaza    string `json:"codigo_plaza" binding:"required"`
+	Nombres        string `json:"nombres" binding:"required"`
+	Apellidos      string `json:"apellidos" binding:"required"`
+	Email          string `json:"email" binding:"required,email"`
+}
+
+type UpdateDocenteInput struct {
+	IDDepartamento *int   `json:"id_departamento"`
 	CodigoPlaza    string `json:"codigo_plaza"`
 	Nombres        string `json:"nombres"`
 	Apellidos      string `json:"apellidos"`
@@ -93,6 +151,16 @@ type PeriodoAcademico struct {
 	ID     int    `json:"id_periodo"`
 	Codigo string `json:"codigo"`
 	Activo bool   `json:"activo"`
+}
+
+type CreatePeriodoInput struct {
+	Codigo string `json:"codigo" binding:"required"`
+	Activo bool   `json:"activo"`
+}
+
+type UpdatePeriodoInput struct {
+	Codigo *string `json:"codigo"`
+	Activo *bool   `json:"activo"`
 }
 
 type SesionDepartamento struct {

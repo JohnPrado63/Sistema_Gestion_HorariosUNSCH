@@ -81,6 +81,24 @@
             Aulas
             <span class="tab-count">{{ allAulas.length }}</span>
           </button>
+          <button class="tab" :class="{ active: activeTab === 'periodos' }" @click="activeTab = 'periodos'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Períodos
+            <span class="tab-count">{{ catalogos.periodos.length }}</span>
+          </button>
+          <button class="tab" :class="{ active: activeTab === 'planes' }" @click="activeTab = 'planes'">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            Planes
+            <span class="tab-count">{{ catalogos.planes.length }}</span>
+          </button>
         </div>
       </div>
 
@@ -219,8 +237,17 @@
 
         <div v-show="activeTab === 'escuelas'" class="tab-content">
           <div class="content-header">
-            <h2>Escuelas Profesionales</h2>
-            <p>Escuelas organizadas por departamento y facultad</p>
+            <div>
+              <h2>Escuelas Profesionales</h2>
+              <p>Escuelas organizadas por departamento y facultad</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevaEscuela">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nueva Escuela
+            </button>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -230,6 +257,7 @@
                   <th>Facultad</th>
                   <th>Departamento</th>
                   <th>Nombre</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -248,6 +276,20 @@
                       {{ item.nombre }}
                     </div>
                   </td>
+                  <td class="actions-cell">
+                    <button class="btn btn-icon-sm" @click="openEditarEscuela(item)" title="Editar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarEscuela(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -256,8 +298,17 @@
 
         <div v-show="activeTab === 'docentes'" class="tab-content">
           <div class="content-header">
-            <h2>Docentes</h2>
-            <p>Personal docente registrado en el sistema</p>
+            <div>
+              <h2>Docentes</h2>
+              <p>Personal docente registrado en el sistema</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevoDocente">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nuevo Docente
+            </button>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -269,6 +320,7 @@
                   <th>Nombres</th>
                   <th>Apellidos</th>
                   <th>Email</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -279,6 +331,20 @@
                   <td>{{ item.nombres }}</td>
                   <td class="fw-600">{{ item.apellidos }}</td>
                   <td class="email-cell">{{ item.email || '—' }}</td>
+                  <td class="actions-cell">
+                    <button class="btn btn-icon-sm" @click="openEditarDocente(item)" title="Editar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarDocente(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -287,8 +353,17 @@
 
         <div v-show="activeTab === 'cursos'" class="tab-content">
           <div class="content-header">
-            <h2>Cursos</h2>
-            <p>Cursos registrados en el sistema académico</p>
+            <div>
+              <h2>Cursos</h2>
+              <p>Cursos registrados en el sistema académico</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevoCurso">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nuevo Curso
+            </button>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -301,6 +376,7 @@
                   <th>Créditos</th>
                   <th>Hrs. Teoría</th>
                   <th>Hrs. Práctica</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -312,6 +388,20 @@
                   <td><span class="creditos-badge">{{ item.creditos }}</span></td>
                   <td>{{ item.horas_teoria }}</td>
                   <td>{{ item.horas_practica }}</td>
+                  <td class="actions-cell">
+                    <button class="btn btn-icon-sm" @click="openEditarCurso(item)" title="Editar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarCurso(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -403,6 +493,109 @@
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="16 12 12 8 8 12"/>
                         <line x1="12" y1="16" x2="12" y2="8"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div v-show="activeTab === 'periodos'" class="tab-content">
+          <div class="content-header">
+            <div>
+              <h2>Períodos Académicos</h2>
+              <p>Gestionar períodos lectivos del sistema</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevoPeriodo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nuevo Período
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Código</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in catalogos.periodos" :key="item.id_periodo">
+                  <td class="id-cell">{{ item.id_periodo }}</td>
+                  <td><span class="codigo-badge">{{ item.codigo }}</span></td>
+                  <td>
+                    <span v-if="item.activo" class="badge-activo">Activo</span>
+                    <span v-else class="badge-inactivo">Inactivo</span>
+                  </td>
+                  <td class="actions-cell">
+                    <button class="btn btn-icon-sm" @click="openEditarPeriodo(item)" title="Editar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarPeriodo(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div v-show="activeTab === 'planes'" class="tab-content">
+          <div class="content-header">
+            <div>
+              <h2>Planes de Estudio</h2>
+              <p>Planes de estudio asociados a escuelas profesionales</p>
+            </div>
+            <button class="btn btn-primary" @click="openNuevoPlan">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nuevo Plan
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Escuela</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in catalogos.planes" :key="item.id_plan">
+                  <td class="id-cell">{{ item.id_plan }}</td>
+                  <td><span class="codigo-badge">{{ item.codigo_plan }}</span></td>
+                  <td class="fw-600">{{ item.nombre }}</td>
+                  <td><span class="escuela-badge">{{ getEscuelaNombre(item.id_escuela) }}</span></td>
+                  <td class="actions-cell">
+                    <button class="btn btn-icon-sm" @click="openEditarPlan(item)" title="Editar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn btn-icon-sm btn-danger" @click="eliminarPlan(item)" title="Eliminar">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>
                     </button>
                   </td>
@@ -547,12 +740,267 @@
           </div>
         </div>
       </div>
+
+      <!-- Modal Escuela -->
+      <div v-if="showModalEscuela" class="modal-overlay" @click.self="showModalEscuela = false">
+        <div class="modal modal-md">
+          <div class="modal-header">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5z"/>
+                <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/>
+              </svg>
+              {{ editingEscuela ? 'Editar' : 'Nueva' }} Escuela
+            </h2>
+            <button class="btn btn-icon" @click="showModalEscuela = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Facultad *</label>
+              <select v-model="escuelaForm.id_facultad" class="form-input">
+                <option value="">-- Seleccionar facultad --</option>
+                <option v-for="f in catalogos.facultades" :key="f.id_facultad" :value="f.id_facultad">
+                  {{ f.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Departamento *</label>
+              <select v-model="escuelaForm.id_departamento" class="form-input">
+                <option value="">-- Seleccionar departamento --</option>
+                <option v-for="d in filteredDepartamentos" :key="d.id_departamento" :value="d.id_departamento">
+                  {{ d.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombre de la Escuela *</label>
+              <input v-model="escuelaForm.nombre" type="text" class="form-input" placeholder="Ej: Escuela Profesional de Ingeniería de Sistemas">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalEscuela = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarEscuela" :disabled="saving">
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Docente -->
+      <div v-if="showModalDocente" class="modal-overlay" @click.self="showModalDocente = false">
+        <div class="modal modal-md">
+          <div class="modal-header">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              {{ editingDocente ? 'Editar' : 'Nuevo' }} Docente
+            </h2>
+            <button class="btn btn-icon" @click="showModalDocente = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Departamento *</label>
+              <select v-model="docenteForm.id_departamento" class="form-input">
+                <option value="">-- Seleccionar departamento --</option>
+                <option v-for="d in catalogos.departamentos" :key="d.id_departamento" :value="d.id_departamento">
+                  {{ d.nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código de Plaza *</label>
+              <input v-model="docenteForm.codigo_plaza" type="text" class="form-input" placeholder="Ej: 1TC04">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombres *</label>
+              <input v-model="docenteForm.nombres" type="text" class="form-input" placeholder="Ej: Juan Carlos">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Apellidos *</label>
+              <input v-model="docenteForm.apellidos" type="text" class="form-input" placeholder="Ej: Pérez García">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input v-model="docenteForm.email" type="email" class="form-input" placeholder="Ej: jperez@unsch.edu.pe">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalDocente = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarDocente" :disabled="saving">
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Curso -->
+      <div v-if="showModalCurso" class="modal-overlay" @click.self="showModalCurso = false">
+        <div class="modal modal-md">
+          <div class="modal-header">
+            <h2>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+              {{ editingCurso ? 'Editar' : 'Nuevo' }} Curso
+            </h2>
+            <button class="btn btn-icon" @click="showModalCurso = false">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Serie (Ciclo) *</label>
+              <select v-model="cursoForm.id_serie" class="form-input">
+                <option value="">-- Seleccionar serie --</option>
+                <option v-for="s in series" :key="s.id_serie" :value="s.id_serie">
+                  {{ s.codigo_plan }} - Ciclo {{ s.numero_ciclo }}{{ s.subciclo > 1 ? ' (II)' : '' }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Código del Curso *</label>
+              <input v-model="cursoForm.codigo" type="text" class="form-input" placeholder="Ej: CS101">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombre del Curso *</label>
+              <input v-model="cursoForm.nombre" type="text" class="form-input" placeholder="Ej: Introducción a la Programación">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Créditos *</label>
+                <input v-model="cursoForm.creditos" type="number" min="1" class="form-input" placeholder="Ej: 4">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hrs. Teoría *</label>
+                <input v-model="cursoForm.horas_teoria" type="number" min="0" class="form-input" placeholder="Ej: 3">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Hrs. Práctica *</label>
+                <input v-model="cursoForm.horas_practica" type="number" min="0" class="form-input" placeholder="Ej: 2">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" @click="showModalCurso = false">Cancelar</button>
+            <button class="btn btn-primary" @click="guardarCurso" :disabled="saving">
+              {{ saving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Periodo -->
+        <div v-if="showModalPeriodo" class="modal-overlay" @click.self="showModalPeriodo = false">
+          <div class="modal modal-sm">
+            <div class="modal-header">
+              <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                {{ editingPeriodo ? 'Editar' : 'Nuevo' }} Período
+              </h2>
+              <button class="btn btn-icon" @click="showModalPeriodo = false">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="form-label">Código del Período *</label>
+                <input v-model="periodoForm.codigo" type="text" class="form-input" placeholder="Ej: 2025-I">
+              </div>
+              <div class="form-group">
+                <label class="checkbox-label">
+                  <input v-model="periodoForm.activo" type="checkbox">
+                  <span class="checkbox-custom"></span>
+                  Período activo
+                </label>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showModalPeriodo = false">Cancelar</button>
+              <button class="btn btn-primary" @click="guardarPeriodo" :disabled="saving">
+                {{ saving ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Plan de Estudio -->
+        <div v-if="showModalPlan" class="modal-overlay" @click.self="showModalPlan = false">
+          <div class="modal modal-md">
+            <div class="modal-header">
+              <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                {{ editingPlan ? 'Editar' : 'Nuevo' }} Plan de Estudio
+              </h2>
+              <button class="btn btn-icon" @click="showModalPlan = false">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="form-group">
+                <label class="form-label">Escuela *</label>
+                <select v-model="planForm.id_escuela" class="form-input">
+                  <option value="">-- Seleccionar escuela --</option>
+                  <option v-for="e in catalogos.escuelas" :key="e.id_escuela" :value="e.id_escuela">
+                    {{ e.nombre }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Código del Plan *</label>
+                <input v-model="planForm.codigo" type="text" class="form-input" placeholder="Ej: 2020-I">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nombre del Plan *</label>
+                <input v-model="planForm.nombre" type="text" class="form-input" placeholder="Ej: Plan de Estudios 2020">
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" @click="showModalPlan = false">Cancelar</button>
+              <button class="btn btn-primary" @click="guardarPlan" :disabled="saving">
+                {{ saving ? 'Guardando...' : 'Guardar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 
 const activeTab = ref('facultades')
@@ -578,7 +1026,9 @@ const catalogos = ref({
   departamentos: [],
   escuelas: [],
   docentes: [],
-  cursos: []
+  cursos: [],
+  periodos: [],
+  planes: []
 })
 
 const allAulas = ref([])
@@ -594,23 +1044,73 @@ const aulaForm = ref({
   es_compartida: false
 })
 
+const showModalEscuela = ref(false)
+const editingEscuela = ref(null)
+const escuelaForm = ref({
+  id_facultad: '',
+  id_departamento: '',
+  nombre: ''
+})
+
+const showModalDocente = ref(false)
+const editingDocente = ref(null)
+const docenteForm = ref({
+  id_departamento: '',
+  codigo_plaza: '',
+  nombres: '',
+  apellidos: '',
+  email: ''
+})
+
+const showModalCurso = ref(false)
+const editingCurso = ref(null)
+const cursoForm = ref({
+  id_serie: '',
+  codigo: '',
+  nombre: '',
+  creditos: '',
+  horas_teoria: '',
+  horas_practica: ''
+})
+
+const series = ref([])
+
+const showModalPeriodo = ref(false)
+const editingPeriodo = ref(null)
+const periodoForm = ref({
+  codigo: '',
+  activo: true
+})
+
+const showModalPlan = ref(false)
+const editingPlan = ref(null)
+const planForm = ref({
+  id_escuela: '',
+  codigo: '',
+  nombre: ''
+})
+
 async function loadAll() {
   loading.value = true
   error.value = ''
   try {
-    const [facultades, departamentos, escuelas, docentes, cursos, aulas, pabs] = await Promise.all([
+    const [facultades, departamentos, escuelas, docentes, cursos, aulas, pabs, seriesData, periodos, planes] = await Promise.all([
       api.facultades.list(),
       api.departamentos.list(),
       api.escuelas.list(),
       api.docentes.list(),
       api.cursos.list(),
       api.aulas.listAll(),
-      api.get('/pabellones')
+      api.get('/pabellones'),
+      api.series.list(),
+      api.periodos.list(),
+      api.planesEstudio.list()
     ])
 
-    catalogos.value = { facultades, departamentos, escuelas, docentes, cursos }
+    catalogos.value = { facultades, departamentos, escuelas, docentes, cursos, periodos, planes }
     allAulas.value = aulas
     pabellones.value = pabs
+    series.value = seriesData
   } catch (e) {
     error.value = e.message
   } finally {
@@ -724,9 +1224,19 @@ function getDepartamentoNombre(id) {
   return d ? d.nombre : `Depto #${id}`
 }
 
+const filteredDepartamentos = computed(() => {
+  if (!escuelaForm.value.id_facultad) return catalogos.value.departamentos
+  return catalogos.value.departamentos.filter(d => d.id_facultad === parseInt(escuelaForm.value.id_facultad))
+})
+
 function getPabellonNombre(id) {
   const p = pabellones.value.find(x => x.id_pabellon === id)
   return p ? p.codigo : `Pabellón #${id}`
+}
+
+function getEscuelaNombre(id) {
+  const e = catalogos.value.escuelas.find(x => x.id_escuela === id)
+  return e ? e.nombre : `Escuela #${id}`
 }
 
 async function toggleAulaActivo(aula) {
@@ -796,6 +1306,303 @@ async function eliminarAula(aula) {
   if (!confirm(`¿Eliminar el aula "${aula.codigo}"? Esta accion no se puede deshacer.`)) return
   try {
     await api.aulas.delete(aula.id_aula)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+// Periodo functions
+function openNuevoPeriodo() {
+  editingPeriodo.value = null
+  periodoForm.value = {
+    codigo: '',
+    activo: true
+  }
+  showModalPeriodo.value = true
+}
+
+function openEditarPeriodo(periodo) {
+  editingPeriodo.value = periodo
+  periodoForm.value = {
+    codigo: periodo.codigo,
+    activo: periodo.activo
+  }
+  showModalPeriodo.value = true
+}
+
+async function guardarPeriodo() {
+  if (!periodoForm.value.codigo) {
+    alert('Ingresa el código del período')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      codigo: periodoForm.value.codigo,
+      activo: periodoForm.value.activo
+    }
+    if (editingPeriodo.value) {
+      await api.periodos.update(editingPeriodo.value.id_periodo, data)
+    } else {
+      await api.periodos.create(data)
+    }
+    showModalPeriodo.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarPeriodo(periodo) {
+  if (!confirm(`¿Eliminar el período "${periodo.codigo}"?`)) return
+  try {
+    await api.periodos.delete(periodo.id_periodo)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+// Plan functions
+function openNuevoPlan() {
+  editingPlan.value = null
+  planForm.value = {
+    id_escuela: '',
+    codigo: '',
+    nombre: ''
+  }
+  showModalPlan.value = true
+}
+
+function openEditarPlan(plan) {
+  editingPlan.value = plan
+  planForm.value = {
+    id_escuela: plan.id_escuela,
+    codigo: plan.codigo_plan,
+    nombre: plan.nombre
+  }
+  showModalPlan.value = true
+}
+
+async function guardarPlan() {
+  if (!planForm.value.id_escuela || !planForm.value.codigo || !planForm.value.nombre) {
+    alert('Completa todos los campos requeridos')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      id_escuela: parseInt(planForm.value.id_escuela),
+      codigo_plan: planForm.value.codigo,
+      nombre: planForm.value.nombre
+    }
+    if (editingPlan.value) {
+      await api.planesEstudio.update(editingPlan.value.id_plan, data)
+    } else {
+      await api.planesEstudio.create(data)
+    }
+    showModalPlan.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarPlan(plan) {
+  if (!confirm(`¿Eliminar el plan "${plan.nombre}"?`)) return
+  try {
+    await api.planesEstudio.delete(plan.id_plan)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+// Escuela functions
+function openNuevaEscuela() {
+  editingEscuela.value = null
+  escuelaForm.value = {
+    id_facultad: '',
+    id_departamento: '',
+    nombre: ''
+  }
+  showModalEscuela.value = true
+}
+
+function openEditarEscuela(escuela) {
+  editingEscuela.value = escuela
+  escuelaForm.value = {
+    id_facultad: escuela.id_facultad,
+    id_departamento: escuela.id_departamento,
+    nombre: escuela.nombre
+  }
+  showModalEscuela.value = true
+}
+
+async function guardarEscuela() {
+  if (!escuelaForm.value.id_facultad || !escuelaForm.value.id_departamento || !escuelaForm.value.nombre) {
+    alert('Completa todos los campos requeridos')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      id_facultad: parseInt(escuelaForm.value.id_facultad),
+      id_departamento: parseInt(escuelaForm.value.id_departamento),
+      nombre: escuelaForm.value.nombre
+    }
+    if (editingEscuela.value) {
+      await api.escuelas.update(editingEscuela.value.id_escuela, data)
+    } else {
+      await api.escuelas.create(data)
+    }
+    showModalEscuela.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarEscuela(escuela) {
+  if (!confirm(`¿Eliminar la escuela "${escuela.nombre}"?`)) return
+  try {
+    await api.escuelas.delete(escuela.id_escuela)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+// Docente functions
+function openNuevoDocente() {
+  editingDocente.value = null
+  docenteForm.value = {
+    id_departamento: '',
+    codigo_plaza: '',
+    nombres: '',
+    apellidos: '',
+    email: ''
+  }
+  showModalDocente.value = true
+}
+
+function openEditarDocente(docente) {
+  editingDocente.value = docente
+  docenteForm.value = {
+    id_departamento: docente.id_departamento,
+    codigo_plaza: docente.codigo_plaza,
+    nombres: docente.nombres,
+    apellidos: docente.apellidos,
+    email: docente.email || ''
+  }
+  showModalDocente.value = true
+}
+
+async function guardarDocente() {
+  if (!docenteForm.value.id_departamento || !docenteForm.value.codigo_plaza || !docenteForm.value.nombres || !docenteForm.value.apellidos) {
+    alert('Completa todos los campos requeridos')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      id_departamento: parseInt(docenteForm.value.id_departamento),
+      codigo_plaza: docenteForm.value.codigo_plaza,
+      nombres: docenteForm.value.nombres,
+      apellidos: docenteForm.value.apellidos,
+      email: docenteForm.value.email
+    }
+    if (editingDocente.value) {
+      await api.docentes.update(editingDocente.value.id_docente, data)
+    } else {
+      await api.docentes.create(data)
+    }
+    showModalDocente.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarDocente(docente) {
+  if (!confirm(`¿Eliminar el docente "${docente.nombres} ${docente.apellidos}"?`)) return
+  try {
+    await api.docentes.delete(docente.id_docente)
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  }
+}
+
+// Curso functions
+function openNuevoCurso() {
+  editingCurso.value = null
+  cursoForm.value = {
+    id_serie: '',
+    codigo: '',
+    nombre: '',
+    creditos: '',
+    horas_teoria: '',
+    horas_practica: ''
+  }
+  showModalCurso.value = true
+}
+
+function openEditarCurso(curso) {
+  editingCurso.value = curso
+  cursoForm.value = {
+    id_serie: curso.id_serie,
+    codigo: curso.codigo,
+    nombre: curso.nombre,
+    creditos: curso.creditos,
+    horas_teoria: curso.horas_teoria,
+    horas_practica: curso.horas_practica
+  }
+  showModalCurso.value = true
+}
+
+async function guardarCurso() {
+  if (!cursoForm.value.id_serie || !cursoForm.value.codigo || !cursoForm.value.nombre || !cursoForm.value.creditos) {
+    alert('Completa todos los campos requeridos')
+    return
+  }
+  saving.value = true
+  try {
+    const data = {
+      id_serie: parseInt(cursoForm.value.id_serie),
+      codigo: cursoForm.value.codigo,
+      nombre: cursoForm.value.nombre,
+      creditos: parseInt(cursoForm.value.creditos),
+      horas_teoria: parseInt(cursoForm.value.horas_teoria) || 0,
+      horas_practica: parseInt(cursoForm.value.horas_practica) || 0
+    }
+    if (editingCurso.value) {
+      await api.cursos.update(editingCurso.value.id_curso, data)
+    } else {
+      await api.cursos.create(data)
+    }
+    showModalCurso.value = false
+    loadAll()
+  } catch (e) {
+    alert('Error: ' + e.message)
+  } finally {
+    saving.value = false
+  }
+}
+
+async function eliminarCurso(curso) {
+  if (!confirm(`¿Eliminar el curso "${curso.nombre}"?`)) return
+  try {
+    await api.cursos.delete(curso.id_curso)
     loadAll()
   } catch (e) {
     alert('Error: ' + e.message)
@@ -982,22 +1789,6 @@ onMounted(loadAll)
   to { opacity: 1; transform: translateY(0); }
 }
 
-.content-header {
-  margin-bottom: 20px;
-}
-
-.content-header h2 {
-  margin: 0 0 4px;
-  font-size: 1.25rem;
-  color: var(--text-primary);
-}
-
-.content-header p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
 .table-container {
   background: var(--bg-secondary);
   border-radius: 20px;
@@ -1088,6 +1879,15 @@ onMounted(loadAll)
 .depto-badge {
   background: linear-gradient(135deg, #11998e20, #38ef7d20);
   color: #11998e;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.escuela-badge {
+  background: linear-gradient(135deg, #f093fb20, #f5576c20);
+  color: #f5576c;
   padding: 4px 10px;
   border-radius: 8px;
   font-size: 0.8rem;
@@ -1223,6 +2023,15 @@ onMounted(loadAll)
 
 .form-group {
   margin-bottom: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
 }
 
 .form-label {

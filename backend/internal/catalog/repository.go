@@ -16,6 +16,9 @@ type RepositoryInterface interface {
 	DeleteFacultad(ctx context.Context, id int) error
 	ListDepartamentos(ctx context.Context) ([]Departamento, error)
 	ListEscuelas(ctx context.Context) ([]Escuela, error)
+	CreateEscuela(ctx context.Context, input CreateEscuelaInput) (*Escuela, error)
+	UpdateEscuela(ctx context.Context, id int, input UpdateEscuelaInput) (*Escuela, error)
+	DeleteEscuela(ctx context.Context, id int) error
 	ListAulas(ctx context.Context) ([]Aula, error)
 	ListAllAulas(ctx context.Context) ([]Aula, error)
 	SetAulaActivo(ctx context.Context, idAula int, activo bool) error
@@ -24,10 +27,22 @@ type RepositoryInterface interface {
 	DeleteAula(ctx context.Context, id int) error
 	ListUsuarios(ctx context.Context) ([]Usuario, error)
 	ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error)
+	CreatePlanEstudio(ctx context.Context, input CreatePlanEstudioInput) (*PlanEstudio, error)
+	UpdatePlanEstudio(ctx context.Context, id int, input UpdatePlanEstudioInput) (*PlanEstudio, error)
+	DeletePlanEstudio(ctx context.Context, id int) error
 	ListSeries(ctx context.Context, idEscuela int) ([]Serie, error)
 	ListCursos(ctx context.Context, idEscuela int) ([]Curso, error)
+	CreateCurso(ctx context.Context, input CreateCursoInput) (*Curso, error)
+	UpdateCurso(ctx context.Context, id int, input UpdateCursoInput) (*Curso, error)
+	DeleteCurso(ctx context.Context, id int) error
 	ListDocentes(ctx context.Context) ([]Docente, error)
+	CreateDocente(ctx context.Context, input CreateDocenteInput) (*Docente, error)
+	UpdateDocente(ctx context.Context, id int, input UpdateDocenteInput) (*Docente, error)
+	DeleteDocente(ctx context.Context, id int) error
 	ListPeriodos(ctx context.Context) ([]PeriodoAcademico, error)
+	CreatePeriodo(ctx context.Context, input CreatePeriodoInput) (*PeriodoAcademico, error)
+	UpdatePeriodo(ctx context.Context, id int, input UpdatePeriodoInput) (*PeriodoAcademico, error)
+	DeletePeriodo(ctx context.Context, id int) error
 	ListSesionesDepartamento(ctx context.Context) ([]SesionDepartamento, error)
 	ListLocales(ctx context.Context) ([]Local, error)
 	ListPabellones(ctx context.Context) ([]Pabellon, error)
@@ -148,6 +163,85 @@ func (r Repository) ListEscuelas(ctx context.Context) ([]Escuela, error) {
 	}
 
 	return items, rows.Err()
+}
+
+func (r Repository) CreateEscuela(ctx context.Context, input CreateEscuelaInput) (*Escuela, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO escuela_profesional (id_facultad, id_departamento, nombre)
+		VALUES ($1, $2, $3)
+		RETURNING id_escuela
+	`, input.IDFacultad, input.IDDepartamento, input.Nombre).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var e Escuela
+	err = r.db.QueryRow(ctx, `
+		SELECT id_escuela, id_facultad, id_departamento, nombre FROM escuela_profesional WHERE id_escuela = $1
+	`, id).Scan(&e.ID, &e.IDFacultad, &e.IDDepartamento, &e.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+func (r Repository) UpdateEscuela(ctx context.Context, id int, input UpdateEscuelaInput) (*Escuela, error) {
+	query := `UPDATE escuela_profesional SET `
+	args := []interface{}{}
+	argIdx := 1
+	setClauses := []string{}
+
+	if input.IDFacultad != nil {
+		setClauses = append(setClauses, fmt.Sprintf("id_facultad = $%d", argIdx))
+		args = append(args, *input.IDFacultad)
+		argIdx++
+	}
+	if input.IDDepartamento != nil {
+		setClauses = append(setClauses, fmt.Sprintf("id_departamento = $%d", argIdx))
+		args = append(args, *input.IDDepartamento)
+		argIdx++
+	}
+	if input.Nombre != "" {
+		setClauses = append(setClauses, fmt.Sprintf("nombre = $%d", argIdx))
+		args = append(args, input.Nombre)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, fmt.Errorf("no hay campos para actualizar")
+	}
+
+	query += strings.Join(setClauses, ", ") + fmt.Sprintf(" WHERE id_escuela = $%d", argIdx)
+	args = append(args, id)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	var e Escuela
+	err = r.db.QueryRow(ctx, `
+		SELECT id_escuela, id_facultad, id_departamento, nombre FROM escuela_profesional WHERE id_escuela = $1
+	`, id).Scan(&e.ID, &e.IDFacultad, &e.IDDepartamento, &e.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &e, nil
+}
+
+func (r Repository) DeleteEscuela(ctx context.Context, id int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM escuela_profesional WHERE id_escuela = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("escuela no encontrada")
+	}
+	return nil
 }
 
 func (r Repository) ListAulas(ctx context.Context) ([]Aula, error) {
@@ -320,6 +414,85 @@ func (r Repository) ListPlanesEstudio(ctx context.Context) ([]PlanEstudio, error
 	return items, rows.Err()
 }
 
+func (r Repository) CreatePlanEstudio(ctx context.Context, input CreatePlanEstudioInput) (*PlanEstudio, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO plan_estudio (id_escuela, codigo_plan, nombre)
+		VALUES ($1, $2, $3)
+		RETURNING id_plan
+	`, input.IDEscuela, input.Codigo, input.Nombre).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var p PlanEstudio
+	err = r.db.QueryRow(ctx, `
+		SELECT id_plan, id_escuela, codigo_plan, nombre FROM plan_estudio WHERE id_plan = $1
+	`, id).Scan(&p.ID, &p.IDEscuela, &p.Codigo, &p.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r Repository) UpdatePlanEstudio(ctx context.Context, id int, input UpdatePlanEstudioInput) (*PlanEstudio, error) {
+	query := `UPDATE plan_estudio SET `
+	args := []interface{}{}
+	argIdx := 1
+	setClauses := []string{}
+
+	if input.IDEscuela != nil {
+		setClauses = append(setClauses, fmt.Sprintf("id_escuela = $%d", argIdx))
+		args = append(args, *input.IDEscuela)
+		argIdx++
+	}
+	if input.Codigo != "" {
+		setClauses = append(setClauses, fmt.Sprintf("codigo_plan = $%d", argIdx))
+		args = append(args, input.Codigo)
+		argIdx++
+	}
+	if input.Nombre != "" {
+		setClauses = append(setClauses, fmt.Sprintf("nombre = $%d", argIdx))
+		args = append(args, input.Nombre)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, fmt.Errorf("no hay campos para actualizar")
+	}
+
+	query += strings.Join(setClauses, ", ") + fmt.Sprintf(" WHERE id_plan = $%d", argIdx)
+	args = append(args, id)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	var p PlanEstudio
+	err = r.db.QueryRow(ctx, `
+		SELECT id_plan, id_escuela, codigo_plan, nombre FROM plan_estudio WHERE id_plan = $1
+	`, id).Scan(&p.ID, &p.IDEscuela, &p.Codigo, &p.Nombre)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r Repository) DeletePlanEstudio(ctx context.Context, id int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM plan_estudio WHERE id_plan = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("plan de estudio no encontrado")
+	}
+	return nil
+}
+
 func (r Repository) ListSeries(ctx context.Context, idEscuela int) ([]Serie, error) {
 	query := `SELECT s.id_serie, s.id_plan, s.numero_ciclo, s.subciclo, p.codigo_plan
 		FROM serie s
@@ -383,6 +556,112 @@ func (r Repository) ListCursos(ctx context.Context, idEscuela int) ([]Curso, err
 	return items, rows.Err()
 }
 
+func (r Repository) CreateCurso(ctx context.Context, input CreateCursoInput) (*Curso, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO curso (id_serie, codigo, nombre, creditos, horas_teoria, horas_practica)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id_curso
+	`, input.IDSerie, input.Codigo, input.Nombre, input.Creditos, input.HorasTeoria, input.HorasPractica).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var c Curso
+	err = r.db.QueryRow(ctx, `
+		SELECT c.id_curso, c.id_serie, c.codigo, c.nombre, c.creditos, c.horas_teoria, c.horas_practica,
+		       e.id_escuela, e.nombre as escuela_nombre
+		FROM curso c
+		JOIN serie s ON s.id_serie = c.id_serie
+		JOIN plan_estudio p ON p.id_plan = s.id_plan
+		JOIN escuela_profesional e ON e.id_escuela = p.id_escuela
+		WHERE c.id_curso = $1
+	`, id).Scan(&c.ID, &c.IDSerie, &c.Codigo, &c.Nombre, &c.Creditos, &c.HorasTeoria, &c.HorasPractica, &c.IDEscuela, &c.EscuelaNombre)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (r Repository) UpdateCurso(ctx context.Context, id int, input UpdateCursoInput) (*Curso, error) {
+	query := `UPDATE curso SET `
+	args := []interface{}{}
+	argIdx := 1
+	setClauses := []string{}
+
+	if input.IDSerie != nil {
+		setClauses = append(setClauses, fmt.Sprintf("id_serie = $%d", argIdx))
+		args = append(args, *input.IDSerie)
+		argIdx++
+	}
+	if input.Codigo != "" {
+		setClauses = append(setClauses, fmt.Sprintf("codigo = $%d", argIdx))
+		args = append(args, input.Codigo)
+		argIdx++
+	}
+	if input.Nombre != "" {
+		setClauses = append(setClauses, fmt.Sprintf("nombre = $%d", argIdx))
+		args = append(args, input.Nombre)
+		argIdx++
+	}
+	if input.Creditos != nil {
+		setClauses = append(setClauses, fmt.Sprintf("creditos = $%d", argIdx))
+		args = append(args, *input.Creditos)
+		argIdx++
+	}
+	if input.HorasTeoria != nil {
+		setClauses = append(setClauses, fmt.Sprintf("horas_teoria = $%d", argIdx))
+		args = append(args, *input.HorasTeoria)
+		argIdx++
+	}
+	if input.HorasPractica != nil {
+		setClauses = append(setClauses, fmt.Sprintf("horas_practica = $%d", argIdx))
+		args = append(args, *input.HorasPractica)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, fmt.Errorf("no hay campos para actualizar")
+	}
+
+	query += strings.Join(setClauses, ", ") + fmt.Sprintf(" WHERE id_curso = $%d", argIdx)
+	args = append(args, id)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	var c Curso
+	err = r.db.QueryRow(ctx, `
+		SELECT c.id_curso, c.id_serie, c.codigo, c.nombre, c.creditos, c.horas_teoria, c.horas_practica,
+		       e.id_escuela, e.nombre as escuela_nombre
+		FROM curso c
+		JOIN serie s ON s.id_serie = c.id_serie
+		JOIN plan_estudio p ON p.id_plan = s.id_plan
+		JOIN escuela_profesional e ON e.id_escuela = p.id_escuela
+		WHERE c.id_curso = $1
+	`, id).Scan(&c.ID, &c.IDSerie, &c.Codigo, &c.Nombre, &c.Creditos, &c.HorasTeoria, &c.HorasPractica, &c.IDEscuela, &c.EscuelaNombre)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+func (r Repository) DeleteCurso(ctx context.Context, id int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM curso WHERE id_curso = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("curso no encontrado")
+	}
+	return nil
+}
+
 func (r Repository) ListDocentes(ctx context.Context) ([]Docente, error) {
 	rows, err := r.db.Query(ctx, `SELECT id_docente, id_departamento, codigo_plaza, nombres, apellidos, email FROM docente ORDER BY apellidos, nombres`)
 	if err != nil {
@@ -402,6 +681,95 @@ func (r Repository) ListDocentes(ctx context.Context) ([]Docente, error) {
 	return items, rows.Err()
 }
 
+func (r Repository) CreateDocente(ctx context.Context, input CreateDocenteInput) (*Docente, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO docente (id_departamento, codigo_plaza, nombres, apellidos, email)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id_docente
+	`, input.IDDepartamento, input.CodigoPlaza, input.Nombres, input.Apellidos, input.Email).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var d Docente
+	err = r.db.QueryRow(ctx, `
+		SELECT id_docente, id_departamento, codigo_plaza, nombres, apellidos, email FROM docente WHERE id_docente = $1
+	`, id).Scan(&d.ID, &d.IDDepartamento, &d.CodigoPlaza, &d.Nombres, &d.Apellidos, &d.Email)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (r Repository) UpdateDocente(ctx context.Context, id int, input UpdateDocenteInput) (*Docente, error) {
+	query := `UPDATE docente SET `
+	args := []interface{}{}
+	argIdx := 1
+	setClauses := []string{}
+
+	if input.IDDepartamento != nil {
+		setClauses = append(setClauses, fmt.Sprintf("id_departamento = $%d", argIdx))
+		args = append(args, *input.IDDepartamento)
+		argIdx++
+	}
+	if input.CodigoPlaza != "" {
+		setClauses = append(setClauses, fmt.Sprintf("codigo_plaza = $%d", argIdx))
+		args = append(args, input.CodigoPlaza)
+		argIdx++
+	}
+	if input.Nombres != "" {
+		setClauses = append(setClauses, fmt.Sprintf("nombres = $%d", argIdx))
+		args = append(args, input.Nombres)
+		argIdx++
+	}
+	if input.Apellidos != "" {
+		setClauses = append(setClauses, fmt.Sprintf("apellidos = $%d", argIdx))
+		args = append(args, input.Apellidos)
+		argIdx++
+	}
+	if input.Email != "" {
+		setClauses = append(setClauses, fmt.Sprintf("email = $%d", argIdx))
+		args = append(args, input.Email)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, fmt.Errorf("no hay campos para actualizar")
+	}
+
+	query += strings.Join(setClauses, ", ") + fmt.Sprintf(" WHERE id_docente = $%d", argIdx)
+	args = append(args, id)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	var d Docente
+	err = r.db.QueryRow(ctx, `
+		SELECT id_docente, id_departamento, codigo_plaza, nombres, apellidos, email FROM docente WHERE id_docente = $1
+	`, id).Scan(&d.ID, &d.IDDepartamento, &d.CodigoPlaza, &d.Nombres, &d.Apellidos, &d.Email)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (r Repository) DeleteDocente(ctx context.Context, id int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM docente WHERE id_docente = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("docente no encontrado")
+	}
+	return nil
+}
+
 func (r Repository) ListPeriodos(ctx context.Context) ([]PeriodoAcademico, error) {
 	rows, err := r.db.Query(ctx, `SELECT id_periodo, codigo, activo FROM periodo_academico ORDER BY id_periodo DESC`)
 	if err != nil {
@@ -419,6 +787,80 @@ func (r Repository) ListPeriodos(ctx context.Context) ([]PeriodoAcademico, error
 	}
 
 	return items, rows.Err()
+}
+
+func (r Repository) CreatePeriodo(ctx context.Context, input CreatePeriodoInput) (*PeriodoAcademico, error) {
+	var id int
+	err := r.db.QueryRow(ctx, `
+		INSERT INTO periodo_academico (codigo, activo)
+		VALUES ($1, $2)
+		RETURNING id_periodo
+	`, input.Codigo, input.Activo).Scan(&id)
+	if err != nil {
+		return nil, err
+	}
+
+	var p PeriodoAcademico
+	err = r.db.QueryRow(ctx, `
+		SELECT id_periodo, codigo, activo FROM periodo_academico WHERE id_periodo = $1
+	`, id).Scan(&p.ID, &p.Codigo, &p.Activo)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r Repository) UpdatePeriodo(ctx context.Context, id int, input UpdatePeriodoInput) (*PeriodoAcademico, error) {
+	query := `UPDATE periodo_academico SET `
+	args := []interface{}{}
+	argIdx := 1
+	setClauses := []string{}
+
+	if input.Codigo != nil {
+		setClauses = append(setClauses, fmt.Sprintf("codigo = $%d", argIdx))
+		args = append(args, *input.Codigo)
+		argIdx++
+	}
+	if input.Activo != nil {
+		setClauses = append(setClauses, fmt.Sprintf("activo = $%d", argIdx))
+		args = append(args, *input.Activo)
+		argIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return nil, fmt.Errorf("no hay campos para actualizar")
+	}
+
+	query += strings.Join(setClauses, ", ") + fmt.Sprintf(" WHERE id_periodo = $%d", argIdx)
+	args = append(args, id)
+
+	result, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if result.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	var p PeriodoAcademico
+	err = r.db.QueryRow(ctx, `
+		SELECT id_periodo, codigo, activo FROM periodo_academico WHERE id_periodo = $1
+	`, id).Scan(&p.ID, &p.Codigo, &p.Activo)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func (r Repository) DeletePeriodo(ctx context.Context, id int) error {
+	result, err := r.db.Exec(ctx, `DELETE FROM periodo_academico WHERE id_periodo = $1`, id)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return fmt.Errorf("periodo no encontrado")
+	}
+	return nil
 }
 
 func (r Repository) ListSesionesDepartamento(ctx context.Context) ([]SesionDepartamento, error) {

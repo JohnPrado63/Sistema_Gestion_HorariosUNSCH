@@ -153,6 +153,67 @@ func (h Handler) Escuelas(c *gin.Context) {
 	respond(c, data, err)
 }
 
+func (h Handler) CreateEscuela(c *gin.Context) {
+	var input CreateEscuelaInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	esc, err := h.repo.CreateEscuela(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, esc)
+}
+
+func (h Handler) UpdateEscuela(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input UpdateEscuelaInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	esc, err := h.repo.UpdateEscuela(c.Request.Context(), id, input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if esc == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Escuela no encontrada"})
+		return
+	}
+
+	c.JSON(http.StatusOK, esc)
+}
+
+func (h Handler) DeleteEscuela(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteEscuela(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Escuela eliminada"})
+}
+
 func (h Handler) Aulas(c *gin.Context) {
 	data, err := h.repo.ListAulas(c.Request.Context())
 	respond(c, data, err)
@@ -259,6 +320,67 @@ func (h Handler) PlanesEstudio(c *gin.Context) {
 	respond(c, data, err)
 }
 
+func (h Handler) CreatePlanEstudio(c *gin.Context) {
+	var input CreatePlanEstudioInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	plan, err := h.repo.CreatePlanEstudio(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, plan)
+}
+
+func (h Handler) UpdatePlanEstudio(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input UpdatePlanEstudioInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	plan, err := h.repo.UpdatePlanEstudio(c.Request.Context(), id, input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if plan == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Plan de estudio no encontrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, plan)
+}
+
+func (h Handler) DeletePlanEstudio(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeletePlanEstudio(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Plan de estudio eliminado"})
+}
+
 func (h Handler) Series(c *gin.Context) {
 	escuela := c.Query("escuela")
 	idEscuela := 0
@@ -287,14 +409,197 @@ func (h Handler) Cursos(c *gin.Context) {
 	respond(c, data, err)
 }
 
+func (h Handler) CreateCurso(c *gin.Context) {
+	var input CreateCursoInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	curso, err := h.repo.CreateCurso(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, curso)
+}
+
+func (h Handler) UpdateCurso(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input UpdateCursoInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	curso, err := h.repo.UpdateCurso(c.Request.Context(), id, input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if curso == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Curso no encontrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, curso)
+}
+
+func (h Handler) DeleteCurso(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteCurso(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Curso eliminado"})
+}
+
 func (h Handler) Docentes(c *gin.Context) {
 	data, err := h.repo.ListDocentes(c.Request.Context())
 	respond(c, data, err)
 }
 
+func (h Handler) CreateDocente(c *gin.Context) {
+	var input CreateDocenteInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	docente, err := h.repo.CreateDocente(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, docente)
+}
+
+func (h Handler) UpdateDocente(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input UpdateDocenteInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	docente, err := h.repo.UpdateDocente(c.Request.Context(), id, input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if docente == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Docente no encontrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, docente)
+}
+
+func (h Handler) DeleteDocente(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeleteDocente(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Docente eliminado"})
+}
+
 func (h Handler) Periodos(c *gin.Context) {
 	data, err := h.repo.ListPeriodos(c.Request.Context())
 	respond(c, data, err)
+}
+
+func (h Handler) CreatePeriodo(c *gin.Context) {
+	var input CreatePeriodoInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	periodo, err := h.repo.CreatePeriodo(c.Request.Context(), input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, periodo)
+}
+
+func (h Handler) UpdatePeriodo(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	var input UpdatePeriodoInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	periodo, err := h.repo.UpdatePeriodo(c.Request.Context(), id, input)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if periodo == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Periodo no encontrado"})
+		return
+	}
+
+	c.JSON(http.StatusOK, periodo)
+}
+
+func (h Handler) DeletePeriodo(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID inválido"})
+		return
+	}
+
+	err = h.repo.DeletePeriodo(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Periodo eliminado"})
 }
 
 func (h Handler) SesionesDepartamento(c *gin.Context) {

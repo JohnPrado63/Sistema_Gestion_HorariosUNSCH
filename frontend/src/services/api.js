@@ -76,6 +76,9 @@ export const api = {
   escuelas: {
     list: () => api.get('/escuelas'),
     get: (id) => api.get(`/escuelas/${id}`),
+    create: (data) => api.post('/escuelas', data),
+    update: (id, data) => api.put(`/escuelas/${id}`, data),
+    delete: (id) => api.delete(`/escuelas/${id}`),
     docentes: (id) => api.get(`/escuelas/${id}/docentes`),
     cursos: (id) => api.get(`/escuelas/${id}/cursos`)
   },
@@ -83,12 +86,18 @@ export const api = {
   docentes: {
     list: () => api.get('/docentes'),
     get: (id) => api.get(`/docentes/${id}`),
+    create: (data) => api.post('/docentes', data),
+    update: (id, data) => api.put(`/docentes/${id}`, data),
+    delete: (id) => api.delete(`/docentes/${id}`),
     cursos: (id) => api.get(`/docentes/${id}/cursos`)
   },
 
   cursos: {
     list: () => api.get('/cursos'),
-    get: (id) => api.get(`/cursos/${id}`)
+    get: (id) => api.get(`/cursos/${id}`),
+    create: (data) => api.post('/cursos', data),
+    update: (id, data) => api.put(`/cursos/${id}`, data),
+    delete: (id) => api.delete(`/cursos/${id}`)
   },
 
   series: {
@@ -96,7 +105,17 @@ export const api = {
   },
 
   periodos: {
-    list: () => api.get('/periodos')
+    list: () => api.get('/periodos'),
+    create: (data) => api.post('/periodos', data),
+    update: (id, data) => api.put(`/periodos/${id}`, data),
+    delete: (id) => api.delete(`/periodos/${id}`)
+  },
+
+  planesEstudio: {
+    list: () => api.get('/planes-estudio'),
+    create: (data) => api.post('/planes-estudio', data),
+    update: (id, data) => api.put(`/planes-estudio/${id}`, data),
+    delete: (id) => api.delete(`/planes-estudio/${id}`)
   },
 
   aulas: {
