@@ -110,6 +110,24 @@
           <UserMenu />
         </div>
       </header>
+
+      <!--
+        ============================================
+        ÁREA DE CONTENIDO PRINCIPAL
+        ============================================
+        Estructura del layout:
+        - .app-layout (flex row, altura 100vh)
+        │   ├── .sidebar (260px, fijo, posición izquierda)
+        │   └── .main-content (flex column, margen izquierdo 260px)
+        │       ├── .topbar (70px altura, sticky, siempre visible)
+        │       └── .content-area (flex: 1, ocupa el resto)
+        │           └── <router-view /> ← Renderiza Dashboard, Catálogos, CargaAcad, Horarios, Validaciones, SIIGE
+        ============================================
+        Cada vista (Dashboard, Catalogos, etc.) define su propio:
+        - .page-header → Barra de título colored (gradiente guindo por defecto)
+        - .page-content → Contenedor interno con padding 24px
+        - Elementos como tablas, cards, modales → Flotan sobre el fondo con border-radius y box-shadow
+      -->
       <div class="content-area">
         <router-view />
       </div>
@@ -231,14 +249,14 @@ body {
 
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(180deg, #A52A2A 0%, #8B0000 100%);
   color: white;
   display: flex;
   flex-direction: column;
   position: fixed;
   height: 100vh;
   overflow-y: auto;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 0 20px rgba(139, 0, 0, 0.2);
   transition: width 0.3s ease;
   z-index: 200;
 }
@@ -291,7 +309,7 @@ body {
 }
 
 .sidebar-logo svg {
-  color: #06b6d4;
+  color: #FFB347;
 }
 
 .sidebar-logo div {
@@ -342,9 +360,10 @@ body {
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #06b6d4, #0ea5e9);
-  color: white;
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  color: #8B0000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-weight: 600;
 }
 
 .nav-item svg {

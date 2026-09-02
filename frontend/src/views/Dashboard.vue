@@ -289,13 +289,13 @@ onMounted(loadStats)
 }
 
 .page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #5C0000 0%, #8B0000 50%, #A52A2A 100%);
   color: white;
   padding: 28px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 32px rgba(139, 0, 0, 0.4);
 }
 
 .header-left .page-title {
@@ -387,10 +387,10 @@ onMounted(loadStats)
   color: white;
 }
 
-.stat-card-purple .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+.stat-card-purple .stat-icon { background: linear-gradient(135deg, #8B0000, #A52A2A); }
 .stat-card-teal .stat-icon { background: linear-gradient(135deg, #11998e, #38ef7d); }
-.stat-card-amber .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
-.stat-card-rose .stat-icon { background: linear-gradient(135deg, #fc466b, #3f5efb); }
+.stat-card-amber .stat-icon { background: linear-gradient(135deg, #FFB347, #FF8C00); }
+.stat-card-rose .stat-icon { background: linear-gradient(135deg, #CD5C5C, #8B0000); }
 
 .stat-content {
   position: relative;
@@ -406,10 +406,10 @@ onMounted(loadStats)
   color: var(--text-primary);
 }
 
-.stat-card-purple .stat-value { color: #667eea; }
+.stat-card-purple .stat-value { color: #8B0000; }
 .stat-card-teal .stat-value { color: #11998e; }
-.stat-card-amber .stat-value { color: #f5576c; }
-.stat-card-rose .stat-value { color: #fc466b; }
+.stat-card-amber .stat-value { color: #FF8C00; }
+.stat-card-rose .stat-value { color: #CD5C5C; }
 
 .stat-label {
   font-size: 0.85rem;
@@ -427,10 +427,10 @@ onMounted(loadStats)
   opacity: 0.1;
 }
 
-.stat-card-purple .stat-decoration { background: #667eea; }
+.stat-card-purple .stat-decoration { background: #8B0000; }
 .stat-card-teal .stat-decoration { background: #11998e; }
-.stat-card-amber .stat-decoration { background: #f5576c; }
-.stat-card-rose .stat-decoration { background: #fc466b; }
+.stat-card-amber .stat-decoration { background: #FF8C00; }
+.stat-card-rose .stat-decoration { background: #CD5C5C; }
 
 .dashboard-grid {
   display: grid;

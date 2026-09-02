@@ -866,13 +866,13 @@ onMounted(() => {
 }
 
 .page-header {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #5C0000 0%, #8B0000 100%);
   color: white;
   padding: 24px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 8px 32px rgba(240, 147, 251, 0.3);
+  box-shadow: 0 8px 32px rgba(139, 0, 0, 0.4);
 }
 
 .header-left .page-title {
@@ -1014,13 +1014,13 @@ onMounted(() => {
 
 .tab:hover {
   background: var(--hover-bg);
-  color: #f5576c;
+  color: #8B0000;
 }
 
 .tab.active {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+  box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
 }
 
 .tab-count {

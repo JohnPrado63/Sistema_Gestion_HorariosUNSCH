@@ -175,7 +175,7 @@ async function handleLogin() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0c1929 100%);
+  background: linear-gradient(135deg, #2d0000 0%, #5C0000 50%, #8B0000 100%);
   position: relative;
   overflow: hidden;
 }
@@ -197,7 +197,7 @@ async function handleLogin() {
 .orb-1 {
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+  background: radial-gradient(circle, #8B0000 0%, transparent 70%);
   top: -200px;
   left: -200px;
   animation-delay: 0s;
@@ -206,7 +206,7 @@ async function handleLogin() {
 .orb-2 {
   width: 500px;
   height: 500px;
-  background: radial-gradient(circle, #0891b2 0%, transparent 70%);
+  background: radial-gradient(circle, #A52A2A 0%, transparent 70%);
   bottom: -150px;
   right: -150px;
   animation-delay: -7s;
@@ -215,7 +215,7 @@ async function handleLogin() {
 .orb-3 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #0ea5e9 0%, transparent 70%);
+  background: radial-gradient(circle, #CD5C5C 0%, transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -441,7 +441,7 @@ async function handleLogin() {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #06b6d4 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #8B0000 0%, #A52A2A 100%);
   border: none;
   border-radius: 12px;
   color: white;
@@ -453,12 +453,12 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 8px 24px rgba(139, 0, 0, 0.3);
 }
 
 .btn-login:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(6, 182, 212, 0.4);
+  box-shadow: 0 12px 32px rgba(139, 0, 0, 0.4);
 }
 
 .btn-login:active:not(:disabled) {
